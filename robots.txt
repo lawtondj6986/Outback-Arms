@@ -1,0 +1,6 @@
+# Outback Arms — robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://www.outbackarms.com/sitemap.xml
