@@ -1312,7 +1312,7 @@ footer li a:hover{color:var(--accent-2)}
         <p>New arrivals · trade-in spotlight · range tips · class calendar · rebate alerts. No spam. We respect your inbox like we respect your trigger discipline.</p>
       </div>
       <form class="news-form" id="newsForm" novalidate>
-        <input type="email" required placeholder="you@email.com" aria-label="Email address"/>
+        <input type="email" name="email" required placeholder="you@email.com" aria-label="Email address"/>
         <button type="submit" class="btn btn-primary">Subscribe</button>
         <label class="chk" style="color:#f4e7d7;width:100%"><input type="checkbox" required/> <span>21+ and consent to receive emails. <a href="#" style="color:#fff;text-decoration:underline">Privacy</a>.</span></label>
       </form>
@@ -1377,9 +1377,10 @@ footer li a:hover{color:var(--accent-2)}
         </div>
       </div>
 
-      <div class="channel-tabs" style="background:var(--panel);max-width:600px;margin-bottom:18px" role="tablist">
+      <div class="channel-tabs" style="background:var(--panel);max-width:760px;margin-bottom:18px;flex-wrap:wrap" role="tablist">
         <button class="on" role="tab" aria-selected="true" onclick="adminTab('inv', event)">📦 Inventory</button>
         <button role="tab" aria-selected="false" onclick="adminTab('add', event)">➕ Add Product</button>
+        <button role="tab" aria-selected="false" onclick="adminTab('leads', event)">📥 Leads <span id="leadsBadge" style="display:none;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">0</span></button>
         <button role="tab" aria-selected="false" onclick="adminTab('orders', event)">🧾 Orders</button>
         <button role="tab" aria-selected="false" onclick="adminTab('settings', event)">⚙️ Site Settings</button>
       </div>
@@ -1454,6 +1455,42 @@ footer li a:hover{color:var(--accent-2)}
             <button class="btn btn-primary" onclick="saveProduct()">💾 Save Product</button>
             <button class="btn btn-ghost" onclick="resetForm();adminTab('inv')">Cancel</button>
             <button class="btn btn-ghost" id="seedBtn" onclick="seedInventory(true)" style="margin-left:auto">↻ Reset to demo inventory</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEADS TAB -->
+      <div id="tab-leads" class="adminTab" style="display:none">
+        <div class="form-card" style="padding:0;overflow:hidden">
+          <div style="padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">Leads Inbox</h3>
+              <p class="desc" style="margin:4px 0 0">Every website form (holds, inquiries, class signups, SMS/email) lands here.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="leadFilter" onchange="renderLeads()" style="background:#0e0f10;border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px">
+                <option value="open">Open (unhandled)</option>
+                <option value="all">All leads</option>
+                <option value="hold">Holds</option>
+                <option value="inquiry">Inquiries</option>
+                <option value="class_signup">Class signups</option>
+                <option value="sms_signup">SMS signups</option>
+                <option value="email_signup">Email signups</option>
+                <option value="newsletter">Newsletter</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="renderLeads()">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="tbl" style="min-width:820px;width:100%">
+              <thead><tr>
+                <th scope="col" style="padding-left:22px">When</th>
+                <th scope="col">Type</th><th scope="col">Contact</th>
+                <th scope="col">Details</th><th scope="col">Status</th>
+                <th scope="col" style="padding-right:22px">Action</th>
+              </tr></thead>
+              <tbody id="leadsBody"></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -2173,18 +2210,26 @@ async function submitLead(type, payload) {
       return true;
     }
     if (LEAD_WEBHOOK) {
-      const res = await fetch(LEAD_WEBHOOK, {
+      await fetch(LEAD_WEBHOOK, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(record)
       });
-      return res.ok;
     }
-    console.info('[Outback] demo lead (no backend):', record);       // demo mode
+    storeLocalLead(record);   // demo/local: keep a copy so the Leads inbox works
     return true;
   } catch (e) {
     console.warn('[Outback] lead submit failed:', e);
     return false;
   }
+}
+// Local (non-Supabase) lead store so the admin Leads inbox is usable offline.
+function storeLocalLead(record) {
+  try {
+    const leads = JSON.parse(localStorage.getItem('oa_leads') || '[]');
+    leads.unshift({ id: Date.now(), handled: false, ...record });
+    localStorage.setItem('oa_leads', JSON.stringify(leads.slice(0, 200)));
+    refreshLeadsBadge();
+  } catch (e) { /* ignore quota */ }
 }
 
 // Wire up the static page forms. leadType tags the row; onOk shows the success UI.
@@ -2284,6 +2329,7 @@ function showDash() {
   document.getElementById('adminLogin').style.display = 'none';
   document.getElementById('adminDash').style.display = '';
   renderAdmin();
+  refreshLeadsBadge();   // show the count of new leads on the tab
 }
 // When live Supabase auth is on, the login uses a staff EMAIL (not the demo
 // username), so relabel the field and swap the demo-credentials hint.
@@ -2315,8 +2361,103 @@ function adminTab(name, ev) {
   const tabs = document.querySelectorAll('#adminDash .channel-tabs button');
   tabs.forEach(b => { b.classList.remove('on'); b.setAttribute('aria-selected', 'false'); });
   if (ev && ev.target) { ev.target.classList.add('on'); ev.target.setAttribute('aria-selected', 'true'); }
+  // ev.target may be a child (e.g. the badge span) — walk up to the button
+  if (ev && ev.target) { const btn = ev.target.closest('button'); if (btn) { btn.classList.add('on'); btn.setAttribute('aria-selected', 'true'); } }
   if (name === 'add' && !document.getElementById('editId').value) resetForm();
   if (name === 'settings') renderGotwSelect();
+  if (name === 'leads') renderLeads();
+}
+
+/* =====================================================================
+   LEADS INBOX  (reads Supabase 'leads' table; localStorage in demo mode)
+   ===================================================================== */
+async function fetchLeads() {
+  if (usingSupabase()) {
+    try {
+      const { data, error } = await sb.from('leads').select('*').order('created_at', { ascending: false }).limit(200);
+      if (error) throw error;
+      return data || [];
+    } catch (e) { toast('Leads unavailable', 'Could not read leads — check you are signed in.', 'err'); return []; }
+  }
+  try { return JSON.parse(localStorage.getItem('oa_leads') || '[]'); } catch (e) { return []; }
+}
+// Pull a human contact string out of the free-form payload.
+function leadContact(p) {
+  p = p || {};
+  const name = [p.inFirst, p.inLast].filter(Boolean).join(' ') || p.hName || p.cName || p.name || '—';
+  const email = p.inEmail || p.cEmail || p.emEmail || p.email || '';
+  const phone = p.inPhone || p.hPhone || p.smsPhone || p.phone || '';
+  return { name, contact: [email, phone].filter(Boolean).join(' · ') || '—' };
+}
+function leadSummary(type, p) {
+  p = p || {};
+  if (type === 'hold') return 'Hold: ' + (p.item || '—');
+  if (type === 'inquiry') return (p.inNeed || 'Inquiry') + (p.inDetails ? ' — ' + p.inDetails : '');
+  if (type === 'class_signup') return 'Class' + (p.cDate ? ' · ' + p.cDate : '');
+  if (type === 'sms_signup') return 'SMS opt-in' + (p.smsZip ? ' · ZIP ' + p.smsZip : '');
+  if (type === 'email_signup' || type === 'newsletter') return 'Email opt-in';
+  return type;
+}
+const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News' };
+function fmtLeadDate(iso) {
+  try { return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+  catch (e) { return iso || ''; }
+}
+async function renderLeads() {
+  const body = document.getElementById('leadsBody');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--mute)">Loading…</td></tr>';
+  const filter = document.getElementById('leadFilter').value;
+  let leads = await fetchLeads();
+  if (filter === 'open') leads = leads.filter(l => !l.handled);
+  else if (filter !== 'all') leads = leads.filter(l => l.type === filter);
+
+  if (!leads.length) {
+    const msg = usingSupabase()
+      ? 'No leads yet. Submissions from the website forms will appear here.'
+      : 'No leads yet. In demo mode, submit a form on the site and it shows up here. (Live leads read from your Supabase database.)';
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px 20px;color:var(--mute)"><div style="font-size:30px;margin-bottom:8px">📭</div><b style="font-family:Oswald;color:var(--ink);display:block;margin-bottom:4px">Inbox clear</b>' + msg + '</td></tr>';
+    refreshLeadsBadge();
+    return;
+  }
+  body.innerHTML = leads.map(l => {
+    const c = leadContact(l.payload);
+    const handled = l.handled;
+    return '<tr style="' + (handled ? 'opacity:.55' : '') + '">' +
+      '<td style="padding-left:22px;white-space:nowrap">' + fmtLeadDate(l.created_at) + '</td>' +
+      '<td><span class="status ' + (l.type === 'hold' ? 'hold' : (l.type === 'inquiry' ? 'bg' : 'ship')) + '">' + (LEAD_LABEL[l.type] || l.type) + '</span></td>' +
+      '<td><b>' + escapeHtml(c.name) + '</b><br/><span style="color:var(--mute);font-size:12px">' + escapeHtml(c.contact) + '</span></td>' +
+      '<td style="max-width:280px">' + escapeHtml(leadSummary(l.type, l.payload)) + '</td>' +
+      '<td>' + (handled ? '<span class="status ship">Handled</span>' : '<span class="status hold">New</span>') + '</td>' +
+      '<td style="padding-right:22px;white-space:nowrap">' +
+        (handled
+          ? '<button class="btn btn-ghost" style="padding:6px 10px;font-size:12px" onclick="markLead(' + JSON.stringify(l.id) + ',false)">Reopen</button>'
+          : '<button class="btn btn-ghost" style="padding:6px 10px;font-size:12px" onclick="markLead(' + JSON.stringify(l.id) + ',true)">Mark handled</button>') +
+      '</td>' +
+    '</tr>';
+  }).join('');
+  refreshLeadsBadge();
+}
+async function markLead(id, handled) {
+  if (usingSupabase()) {
+    const { error } = await sb.from('leads').update({ handled }).eq('id', id);
+    if (error) { toast('Update failed', error.message, 'err'); return; }
+  } else {
+    try {
+      const leads = JSON.parse(localStorage.getItem('oa_leads') || '[]');
+      const l = leads.find(x => x.id === id); if (l) l.handled = handled;
+      localStorage.setItem('oa_leads', JSON.stringify(leads));
+    } catch (e) {}
+  }
+  renderLeads();
+}
+async function refreshLeadsBadge() {
+  const badge = document.getElementById('leadsBadge');
+  if (!badge) return;
+  const leads = await fetchLeads();
+  const open = leads.filter(l => !l.handled).length;
+  badge.textContent = open;
+  badge.style.display = open ? 'inline-block' : 'none';
 }
 function renderAdmin() {
   const items = loadInventory();
