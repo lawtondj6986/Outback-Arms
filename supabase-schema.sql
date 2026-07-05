@@ -111,11 +111,32 @@ insert into public.products (name, brand, cat, price, stock, cond, "desc", img) 
  ('5.56 NATO 55gr — 500rd Case','Federal','Ammo',249,0,'Clearance','American Eagle 55gr FMJ. 500-round case. Brass case, boxer primed, reloadable.','https://images.unsplash.com/photo-1591123720164-de1348028a82?w=600&h=450&fit=crop&q=70')
 on conflict do nothing;
 
--- ---------- PRODUCT PHOTOS (optional) ----------
--- Create a public Storage bucket named 'product-photos' for staff uploads.
--- Then set each product's img to the public URL, e.g.:
---   https://YOUR-PROJECT.supabase.co/storage/v1/object/public/product-photos/glock19.jpg
--- (The admin uploader already resizes to 800px before upload.)
+-- ---------- PRODUCT PHOTOS (Storage) ----------
+-- The admin uploader resizes photos to 800px and uploads them here, storing
+-- the public URL on the product. Public read; only signed-in staff can write.
+insert into storage.buckets (id, name, public)
+values ('product-photos', 'product-photos', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "product photos public read" on storage.objects;
+create policy "product photos public read"
+  on storage.objects for select
+  using (bucket_id = 'product-photos');
+
+drop policy if exists "product photos staff insert" on storage.objects;
+create policy "product photos staff insert"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'product-photos');
+
+drop policy if exists "product photos staff update" on storage.objects;
+create policy "product photos staff update"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'product-photos');
+
+drop policy if exists "product photos staff delete" on storage.objects;
+create policy "product photos staff delete"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'product-photos');
 
 -- ---------- STAFF USER ----------
 -- Create at least one staff login in  Authentication ▸ Users ▸ Add user

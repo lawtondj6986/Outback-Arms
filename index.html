@@ -2588,7 +2588,12 @@ function resetForm() {
   document.getElementById('formTitle').textContent = 'Add New Product';
 }
 
-/* ---------- photo upload: resize on a canvas, store as data URL ---------- */
+/* ---------- photo upload ----------
+   Resizes on a canvas to 800px, then:
+     • Supabase mode → uploads the JPEG to the 'product-photos' Storage bucket
+       and stores the public URL (keeps the database small & images cached).
+     • Demo mode     → falls back to an inline data URL.
+   If a Storage upload fails, it gracefully falls back to the data URL. */
 function handlePhotoUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -2604,13 +2609,40 @@ function handlePhotoUpload(e) {
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      // show the resized preview immediately for snappy UX
       document.getElementById('photoPreview').src = dataUrl;
       document.getElementById('fPhotoUrl').value = dataUrl;
-      toast('Photo ready', 'Resized to 800px for fast loading.', 'ok');
+
+      if (usingSupabase()) {
+        canvas.toBlob(blob => uploadPhoto(blob, dataUrl), 'image/jpeg', 0.85);
+      } else {
+        toast('Photo ready', 'Resized to 800px for fast loading.', 'ok');
+      }
     };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
+}
+// Upload the resized blob to Supabase Storage; store the public URL on success.
+async function uploadPhoto(blob, dataUrlFallback) {
+  if (!blob) return;
+  const name = 'products/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+  toast('Uploading photo…', 'Saving to your image library.', 'ok');
+  try {
+    const { error } = await sb.storage.from('product-photos').upload(name, blob, { contentType: 'image/jpeg', upsert: true });
+    if (error) throw error;
+    const { data } = sb.storage.from('product-photos').getPublicUrl(name);
+    const url = data && data.publicUrl;
+    if (!url) throw new Error('No public URL');
+    document.getElementById('fPhotoUrl').value = url;   // store the hosted URL, not the data blob
+    document.getElementById('photoPreview').src = url;
+    toast('Photo uploaded ✓', 'Stored in your Supabase image library.', 'ok');
+  } catch (err) {
+    // keep the data URL so the product still saves — just larger
+    console.warn('[Outback] photo upload failed, using inline image:', err);
+    document.getElementById('fPhotoUrl').value = dataUrlFallback;
+    toast('Using inline image', 'Upload to Storage failed (is the product-photos bucket set up?). The photo still saved.', 'err');
+  }
 }
 function renderGotwSelect() {
   const sel = document.getElementById('gotwSelect');
