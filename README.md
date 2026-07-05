@@ -4,6 +4,16 @@ Conversion-optimized, single-file storefront for Outback Arms, a family-run
 FFL gun shop in Plympton, MA. Dark tactical design, mobile-first, with a live
 inventory admin, customer portal, lead capture, and Supabase backend.
 
+## 🚀 Put it online (1 click)
+
+New here? Read **[GO-LIVE.md](GO-LIVE.md)** — a plain-English, no-code guide.
+Or just click a button below, sign in with GitHub, and hit **Deploy**:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/lawtondj6986/Outback-Arms) &nbsp;
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/lawtondj6986/Outback-Arms)
+
+Both are free, auto-deploy on every push, and give free HTTPS. Pick one.
+
 ## Contents
 
 | File | Purpose |

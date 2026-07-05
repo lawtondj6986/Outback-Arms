@@ -1,0 +1,45 @@
+name: Deploy to Netlify
+
+# Auto-deploys the site to Netlify on every push to main.
+# OPTIONAL — the simplest path is Netlify's built-in Git integration
+# (connect the repo once at app.netlify.com and it auto-deploys with no
+# secrets). This workflow is here if you prefer CI-driven deploys.
+#
+# To enable: add two repository secrets under
+#   Settings ▸ Secrets and variables ▸ Actions ▸ New repository secret
+#     NETLIFY_AUTH_TOKEN  — Netlify ▸ User settings ▸ Applications ▸ New access token
+#     NETLIFY_SITE_ID     — Netlify site ▸ Site configuration ▸ Site ID
+# Until both are set, this workflow runs green and simply skips (no errors).
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Check configuration
+        id: gate
+        run: |
+          if [ -n "$NETLIFY_AUTH_TOKEN" ] && [ -n "$NETLIFY_SITE_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Netlify not configured::Add NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID under Settings ▸ Secrets and variables ▸ Actions to enable auto-deploy. Skipping for now."
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        if: steps.gate.outputs.ready == 'true'
+        run: npx --yes netlify-cli@17 deploy --prod --dir=. --site="$NETLIFY_SITE_ID" --auth="$NETLIFY_AUTH_TOKEN"
