@@ -1499,18 +1499,42 @@ footer li a:hover{color:var(--accent-2)}
 
       <!-- ORDERS TAB -->
       <div id="tab-orders" class="adminTab" style="display:none">
-        <div class="form-card">
-          <h3>Recent Orders</h3>
-          <p class="desc">Live feed from WooCommerce in production. Shown here as a static demo.</p>
-          <table class="tbl">
-            <thead><tr><th scope="col">Order #</th><th scope="col">Customer</th><th scope="col">Items</th><th scope="col">FFL</th><th scope="col">Status</th><th scope="col">Total</th></tr></thead>
-            <tbody>
-              <tr><td>#2841</td><td>D. Jameson</td><td>Sig Cross 6.5</td><td>On file</td><td><span class="status hold">FFL Hold</span></td><td>$1,649</td></tr>
-              <tr><td>#2840</td><td>M. Reilly</td><td>Vortex Strike Eagle</td><td>—</td><td><span class="status ship">Ready for pickup</span></td><td>$549</td></tr>
-              <tr><td>#2839</td><td>J. O'Connor</td><td>Glock G19 Gen 5</td><td>Outgoing</td><td><span class="status bg">Background check</span></td><td>$649</td></tr>
-              <tr><td>#2838</td><td>K. Sullivan</td><td>500rd 5.56 case</td><td>n/a</td><td><span class="status ship">Shipped</span></td><td>$249</td></tr>
-            </tbody>
-          </table>
+        <div class="form-card" style="padding:0;overflow:hidden">
+          <div style="padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+            <div>
+              <h3 style="margin:0">Orders</h3>
+              <p class="desc" style="margin:4px 0 0">Track holds, background checks, pickups and shipments. Change a status inline.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="toggleNewOrder()">+ New Order</button>
+          </div>
+
+          <!-- quick add-order form (hidden by default) -->
+          <div id="newOrderForm" style="display:none;padding:18px 22px;border-bottom:1px solid var(--line);background:#0e0f10">
+            <div class="row2">
+              <div class="field"><label for="oCustomer">Customer *</label><input id="oCustomer" placeholder="D. Jameson"/></div>
+              <div class="field"><label for="oItems">Item(s) *</label><input id="oItems" placeholder="Sig Cross 6.5 CM"/></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="oTotal">Total (USD)</label><input id="oTotal" type="number" step="0.01" placeholder="1649.00"/></div>
+              <div class="field"><label for="oFfl">FFL</label><input id="oFfl" placeholder="On file / Outgoing / n/a"/></div>
+            </div>
+            <div class="field"><label for="oStatus">Status</label>
+              <select id="oStatus"><option>New</option><option>FFL Hold</option><option>Background check</option><option>Ready for pickup</option><option>Shipped</option><option>Picked up</option><option>Cancelled</option></select>
+            </div>
+            <div style="display:flex;gap:10px"><button class="btn btn-primary btn-sm" onclick="addOrder()">Save Order</button><button class="btn btn-ghost btn-sm" onclick="toggleNewOrder()">Cancel</button></div>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table class="tbl" style="min-width:820px;width:100%">
+              <thead><tr>
+                <th scope="col" style="padding-left:22px">Order #</th>
+                <th scope="col">Customer</th><th scope="col">Items</th><th scope="col">FFL</th>
+                <th scope="col">Status</th><th scope="col">Total</th>
+                <th scope="col" style="padding-right:22px"></th>
+              </tr></thead>
+              <tbody id="ordersBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -2368,6 +2392,7 @@ function adminTab(name, ev) {
   if (name === 'add' && !document.getElementById('editId').value) resetForm();
   if (name === 'settings') renderGotwSelect();
   if (name === 'leads') renderLeads();
+  if (name === 'orders') renderOrders();
 }
 
 /* =====================================================================
@@ -2461,6 +2486,106 @@ async function refreshLeadsBadge() {
   badge.textContent = open;
   badge.style.display = open ? 'inline-block' : 'none';
 }
+
+/* =====================================================================
+   ORDERS  (Supabase 'orders' table; localStorage 'oa_orders' in demo mode)
+   ===================================================================== */
+const ORDER_STATUSES = ['New', 'FFL Hold', 'Background check', 'Ready for pickup', 'Shipped', 'Picked up', 'Cancelled'];
+const ORDER_STATUS_CLASS = { 'FFL Hold': 'hold', 'Background check': 'bg', 'Ready for pickup': 'ship', 'Shipped': 'ship', 'Picked up': 'ship', 'Cancelled': 'bg', 'New': 'hold' };
+const DEMO_ORDERS = [
+  { id: 2841, order_no: '#2841', customer: 'D. Jameson', items: 'Sig Cross 6.5', ffl: 'On file', status: 'FFL Hold', total: 1649 },
+  { id: 2840, order_no: '#2840', customer: 'M. Reilly', items: 'Vortex Strike Eagle', ffl: '—', status: 'Ready for pickup', total: 549 },
+  { id: 2839, order_no: '#2839', customer: "J. O'Connor", items: 'Glock G19 Gen 5', ffl: 'Outgoing', status: 'Background check', total: 649 },
+  { id: 2838, order_no: '#2838', customer: 'K. Sullivan', items: '500rd 5.56 case', ffl: 'n/a', status: 'Shipped', total: 249 }
+];
+function localOrders() {
+  try {
+    const raw = localStorage.getItem('oa_orders');
+    if (!raw) { localStorage.setItem('oa_orders', JSON.stringify(DEMO_ORDERS)); return DEMO_ORDERS.map(o => ({ ...o })); }
+    return JSON.parse(raw);
+  } catch (e) { return DEMO_ORDERS.map(o => ({ ...o })); }
+}
+function saveLocalOrders(list) { localStorage.setItem('oa_orders', JSON.stringify(list)); }
+async function fetchOrders() {
+  if (usingSupabase()) {
+    try {
+      const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
+      if (error) throw error;
+      return data || [];
+    } catch (e) { toast('Orders unavailable', 'Could not read orders — check you are signed in.', 'err'); return []; }
+  }
+  return localOrders();
+}
+function toggleNewOrder() {
+  const f = document.getElementById('newOrderForm');
+  f.style.display = f.style.display === 'none' ? '' : 'none';
+}
+async function renderOrders() {
+  const body = document.getElementById('ordersBody');
+  if (!body) return;
+  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--mute)">Loading…</td></tr>';
+  const orders = await fetchOrders();
+  if (!orders.length) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px 20px;color:var(--mute)"><div style="font-size:30px;margin-bottom:8px">🧾</div><b style="font-family:Oswald;color:var(--ink);display:block;margin-bottom:4px">No orders yet</b>Click “New Order” to add one, or convert a hold from the Leads inbox.</td></tr>';
+    return;
+  }
+  body.innerHTML = orders.map(o => {
+    const opts = ORDER_STATUSES.map(s => '<option' + (s === o.status ? ' selected' : '') + '>' + s + '</option>').join('');
+    return '<tr>' +
+      '<td style="padding-left:22px;white-space:nowrap"><b>' + escapeHtml(o.order_no || ('#' + o.id)) + '</b></td>' +
+      '<td>' + escapeHtml(o.customer || '—') + '</td>' +
+      '<td>' + escapeHtml(o.items || '—') + '</td>' +
+      '<td>' + escapeHtml(o.ffl || '—') + '</td>' +
+      '<td><select onchange="updateOrderStatus(' + JSON.stringify(o.id) + ', this.value)" style="background:#0e0f10;border:1px solid var(--line);border-radius:6px;padding:5px 8px;color:var(--ink);font-size:12px">' + opts + '</select></td>' +
+      '<td>$' + Number(o.total || 0).toLocaleString() + '</td>' +
+      '<td style="padding-right:22px;white-space:nowrap"><button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;border-color:#5a2a24;color:#e89289" onclick="deleteOrder(' + JSON.stringify(o.id) + ')">Delete</button></td>' +
+    '</tr>';
+  }).join('');
+}
+async function addOrder() {
+  const customer = document.getElementById('oCustomer').value.trim();
+  const items = document.getElementById('oItems').value.trim();
+  if (!customer || !items) { toast('Missing fields', 'Customer and item(s) are required.', 'err'); return; }
+  const rec = {
+    customer, items,
+    ffl: document.getElementById('oFfl').value.trim() || '—',
+    status: document.getElementById('oStatus').value,
+    total: parseFloat(document.getElementById('oTotal').value) || 0
+  };
+  if (usingSupabase()) {
+    const { error } = await sb.from('orders').insert(rec);
+    if (error) { toast('Save failed', error.message, 'err'); return; }
+  } else {
+    const list = localOrders();
+    const id = list.length ? Math.max(...list.map(o => o.id || 0)) + 1 : 2842;
+    list.unshift({ id, order_no: '#' + id, ...rec });
+    saveLocalOrders(list);
+  }
+  ['oCustomer', 'oItems', 'oTotal', 'oFfl'].forEach(id => document.getElementById(id).value = '');
+  toggleNewOrder();
+  renderOrders();
+  toast('Order added', 'New order is on the books.', 'ok');
+}
+async function updateOrderStatus(id, status) {
+  if (usingSupabase()) {
+    const { error } = await sb.from('orders').update({ status }).eq('id', id);
+    if (error) { toast('Update failed', error.message, 'err'); return; }
+  } else {
+    const list = localOrders(); const o = list.find(x => x.id === id); if (o) o.status = status; saveLocalOrders(list);
+  }
+  toast('Status updated', 'Order marked “' + status + '”.', 'ok');
+}
+async function deleteOrder(id) {
+  if (usingSupabase()) {
+    const { error } = await sb.from('orders').delete().eq('id', id);
+    if (error) { toast('Delete failed', error.message, 'err'); return; }
+  } else {
+    saveLocalOrders(localOrders().filter(x => x.id !== id));
+  }
+  renderOrders();
+  toast('Order deleted', 'The order was removed.', 'ok');
+}
+
 function renderAdmin() {
   const items = loadInventory();
   document.getElementById('kTotal').textContent = items.length;

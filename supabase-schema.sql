@@ -99,6 +99,33 @@ create policy "leads updatable by staff"
   to authenticated
   using (true) with check (true);
 
+-- ---------- ORDERS ----------
+-- Staff-only order tracking (holds, background checks, pickups, shipments).
+create table if not exists public.orders (
+  id         bigint generated always as identity primary key,
+  order_no   text,
+  customer   text not null,
+  items      text,
+  ffl        text default '',
+  status     text not null default 'New',
+  total      numeric default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.orders enable row level security;
+
+drop policy if exists "orders staff all" on public.orders;
+create policy "orders staff all"
+  on public.orders for all to authenticated
+  using (true) with check (true);
+
+-- seed a few demo orders (run once)
+insert into public.orders (order_no, customer, items, ffl, status, total) values
+ ('#2841','D. Jameson','Sig Cross 6.5','On file','FFL Hold',1649),
+ ('#2840','M. Reilly','Vortex Strike Eagle','—','Ready for pickup',549),
+ ('#2839','J. O''Connor','Glock G19 Gen 5','Outgoing','Background check',649),
+ ('#2838','K. Sullivan','500rd 5.56 case','n/a','Shipped',249);
+
 -- ---------- SEED (8 demo products) ----------
 insert into public.products (name, brand, cat, price, stock, cond, "desc", img) values
  ('G19 Gen 5 9mm','Glock','Handguns',649,4,'New','Striker-fired 9mm. 15+1 capacity, 4.02" barrel. The most popular concealed-carry handgun in the US.','https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=600&h=450&fit=crop&q=70'),
