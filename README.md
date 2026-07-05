@@ -19,12 +19,27 @@ Both are free, auto-deploy on every push, and give free HTTPS. Pick one.
 | File | Purpose |
 |------|---------|
 | `index.html` | The entire site — self-contained (HTML + CSS + JS in one file) |
-| `supabase-schema.sql` | Run once in the Supabase SQL editor: `products`, `wishlists`, `leads` tables + RLS + seed data |
+| `supabase-schema.sql` | Run in the Supabase SQL editor: `products`, `wishlists`, `leads`, `orders` tables + RLS + Storage bucket + seed data |
+| `supabase/functions/notify-lead/` | Edge Function that emails/texts staff on each new lead |
+| `NOTIFICATIONS.md` | How to turn on new-lead alerts (no-code or Edge Function) |
+| `GO-LIVE.md` | Plain-English, no-code hosting guide |
 | `DEPLOY.md` | Deploy, backend, analytics, and performance guide |
 | `COMPLIANCE.md` | Legal/compliance checklist for attorney review |
 | `netlify.toml` / `vercel.json` | Host configs (security headers + cache rules) |
 | `robots.txt` / `sitemap.xml` | SEO (update the domain before launch) |
 | `og-image.png` | 1200×630 social share image |
+
+## Admin console
+
+Sign into the **Admin** section (staff email/password from Supabase Auth, or
+`admin` / `outback2026` in demo mode) for:
+**Inventory** (CRUD + photo upload to Storage) · **Leads inbox** (form
+submissions) · **Orders** (holds → pickup → shipped tracking) · **Site
+settings** · Inventory-value KPI.
+
+> **After pulling updates, re-run `supabase-schema.sql`** — it's guarded, so
+> re-running is safe and adds any new tables/buckets (e.g. `orders`,
+> `product-photos`). Then optionally set up alerts via `NOTIFICATIONS.md`.
 
 ## Backend
 
