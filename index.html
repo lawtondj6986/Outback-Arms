@@ -1348,12 +1348,12 @@ footer li a:hover{color:var(--accent-2)}
       <h3>Staff Login</h3>
       <p class="desc">Sign in to manage inventory.</p>
       <form id="loginForm" novalidate>
-        <div class="field"><label for="loginUser">Username</label><input id="loginUser" placeholder="admin" autocomplete="username"/></div>
+        <div class="field"><label for="loginUser" id="loginUserLabel">Username</label><input id="loginUser" placeholder="admin" autocomplete="username"/></div>
         <div class="field"><label for="loginPass">Password</label><input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
         <div id="loginError" style="color:var(--bad);font-size:13px;margin-bottom:10px;display:none" role="alert">Wrong username or password.</div>
         <button class="btn btn-primary btn-block" type="submit">Sign In</button>
       </form>
-      <p class="fine" style="margin-top:14px;padding:12px;background:#0e0f10;border-radius:8px;border:1px dashed var(--khaki)">
+      <p class="fine" id="demoCreds" style="margin-top:14px;padding:12px;background:#0e0f10;border-radius:8px;border:1px dashed var(--khaki)">
         <b style="color:var(--accent-2)">DEMO CREDENTIALS</b><br/>
         Username: <code style="color:var(--ink)">admin</code> &nbsp;·&nbsp; Password: <code style="color:var(--ink)">outback2026</code>
       </p>
@@ -1599,6 +1599,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let sb = null;                                   // Supabase client (null = local mode)
 function usingSupabase(){ return !!sb; }
 function initSupabase(){
+  if (sb) return;   // idempotent — safe to call more than once
   if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && window.supabase.createClient) {
     try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
     catch (e) { console.warn('[Outback] Supabase init failed, using local mode:', e); sb = null; }
@@ -2284,6 +2285,17 @@ function showDash() {
   document.getElementById('adminDash').style.display = '';
   renderAdmin();
 }
+// When live Supabase auth is on, the login uses a staff EMAIL (not the demo
+// username), so relabel the field and swap the demo-credentials hint.
+function adjustAdminLoginUI() {
+  if (!usingSupabase()) return;
+  const label = document.getElementById('loginUserLabel');
+  const input = document.getElementById('loginUser');
+  const demo = document.getElementById('demoCreds');
+  if (label) label.textContent = 'Staff email';
+  if (input) { input.placeholder = 'you@outbackarms.com'; input.type = 'email'; input.autocomplete = 'email'; }
+  if (demo) demo.innerHTML = '<b style="color:var(--accent-2)">STAFF SIGN-IN</b><br/>Use the email &amp; password created in your Supabase project. Forgot it? Reset from the Supabase dashboard.';
+}
 // Restore an existing session on load (Supabase session or local demo flag).
 async function checkSession() {
   if (usingSupabase()) {
@@ -2561,6 +2573,8 @@ function renderAll() {
    bootData() hydrates the cache (Supabase or localStorage) and renders.
    Everything downstream stays synchronous. */
 (async function boot() {
+  initSupabase();         // detect backend before adjusting the login UI
+  adjustAdminLoginUI();   // relabel staff login to email when Supabase is live
   initAnalytics();        // dormant unless GA_MEASUREMENT_ID is set
   updateOpenStatus();     // live "Open now / Closed" in the utility bar
   setInterval(updateOpenStatus, 60000);   // refresh each minute
