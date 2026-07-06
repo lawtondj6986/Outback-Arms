@@ -35,7 +35,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://images.unsplash.com" />
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Fonts loaded non-render-blocking: preload the CSS, then swap media to apply.
+     Body text falls back to system fonts instantly (see font stack in CSS).
+     For the last mile, self-host the woff2 files — see DEPLOY.md §5. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" /></noscript>
 <!-- Local Business structured data -->
 <script type="application/ld+json">
 {
@@ -504,6 +509,14 @@ footer li a:hover{color:var(--accent-2)}
 .mobile-cta{position:fixed;bottom:0;left:0;right:0;z-index:80;background:rgba(13,14,15,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px var(--s-4);display:none;gap:var(--s-2);box-shadow:0 -8px 24px rgba(0,0,0,.4)}
 .mobile-cta .btn{flex:1;padding:13px 8px;font-size:13px}
 .mobile-cta .btn svg{width:16px;height:16px}
+
+/* ---------- Cookie consent (only shown when analytics is enabled) ---------- */
+.consent{position:fixed;left:var(--s-4);bottom:var(--s-4);z-index:95;max-width:360px;background:linear-gradient(180deg,#1e2124,#15171a);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s-4);box-shadow:var(--sh-3);display:none}
+.consent.show{display:block}
+.consent p{margin:0 0 var(--s-3);font-size:13px;color:var(--ink-2);line-height:1.55}
+.consent p a{color:var(--accent-2);text-decoration:underline}
+.consent .c-row{display:flex;gap:var(--s-2)}
+@media (max-width:1000px){ .consent{bottom:76px;left:var(--s-3);right:var(--s-3);max-width:none} }
 
 /* ---------- Toast notifications ---------- */
 .toast-wrap{position:fixed;top:calc(var(--s-5) + 60px);right:var(--s-5);z-index:300;display:flex;flex-direction:column;gap:var(--s-3);max-width:360px;width:calc(100% - 48px)}
@@ -1617,6 +1630,15 @@ footer li a:hover{color:var(--accent-2)}
   </div>
 </footer>
 
+<!-- =================== COOKIE CONSENT (only appears if analytics is on) =================== -->
+<div class="consent" id="consentBanner" role="region" aria-label="Cookie consent">
+  <p>We use privacy-friendly analytics to see what's useful on the site — no ads, no selling your data. Okay to enable? <a href="#">Privacy</a></p>
+  <div class="c-row">
+    <button class="btn btn-primary btn-sm" onclick="grantConsent()">Accept</button>
+    <button class="btn btn-ghost btn-sm" onclick="denyConsent()">Decline</button>
+  </div>
+</div>
+
 <!-- =================== FLOATING MOBILE CTA =================== -->
 <div class="mobile-cta" aria-label="Quick actions">
   <a href="tel:+17815856615" class="btn btn-ghost"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a>
@@ -1698,6 +1720,28 @@ function track(event, params) {
   // Plausible alt: if (window.plausible) plausible(event, { props: params });
 }
 
+/* ---- Cookie consent gate ----
+   No analytics configured → no cookies, no banner. If configured, ask once
+   and only load analytics after the visitor accepts. Choice persists. */
+const CONSENT_KEY = 'oa_consent';
+function initConsent() {
+  if (!GA_MEASUREMENT_ID || navigator.doNotTrack === '1') return;   // nothing to consent to
+  const choice = localStorage.getItem(CONSENT_KEY);
+  if (choice === 'granted') { initAnalytics(); return; }
+  if (choice === 'denied') return;
+  const b = document.getElementById('consentBanner');
+  if (b) b.classList.add('show');
+}
+function grantConsent() {
+  localStorage.setItem(CONSENT_KEY, 'granted');
+  document.getElementById('consentBanner')?.classList.remove('show');
+  initAnalytics();
+}
+function denyConsent() {
+  localStorage.setItem(CONSENT_KEY, 'denied');
+  document.getElementById('consentBanner')?.classList.remove('show');
+}
+
 /* =====================================================================
    1. TOAST + MODAL  (replaces every alert())
    ===================================================================== */
@@ -1738,7 +1782,19 @@ function closeModal() {
 }
 // close on overlay click, Escape, and close button
 document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('modalOverlay').classList.contains('open')) closeModal(); });
+document.addEventListener('keydown', e => {
+  const overlay = document.getElementById('modalOverlay');
+  if (!overlay.classList.contains('open')) return;
+  if (e.key === 'Escape') { closeModal(); return; }
+  // a11y: trap Tab focus inside the open dialog
+  if (e.key === 'Tab') {
+    const f = overlay.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
 
 /* =====================================================================
    2. MOBILE MENU
@@ -2890,7 +2946,7 @@ function renderGridLoading() {
 (async function boot() {
   initSupabase();         // detect backend before adjusting the login UI
   adjustAdminLoginUI();   // relabel staff login to email when Supabase is live
-  initAnalytics();        // dormant unless GA_MEASUREMENT_ID is set
+  initConsent();          // analytics loads only after consent (and only if a GA id is set)
   updateOpenStatus();     // live "Open now / Closed" in the utility bar
   setInterval(updateOpenStatus, 60000);   // refresh each minute
   renderGridLoading();    // show skeletons until inventory arrives

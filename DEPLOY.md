@@ -38,13 +38,17 @@ Also included: `robots.txt`, `sitemap.xml` (update the domain).
 ## 5. Performance notes
 - Product images are `loading="lazy"` + `decoding="async"`; the hero image is
   `fetchpriority="high"`. Aspect-ratios are locked to avoid layout shift.
-- **Self-host the fonts** for the biggest remaining win (removes the render-
-  blocking Google Fonts request):
+- Fonts already load **non-render-blocking** (preload + `media="print"`
+  swap, with a `<noscript>` fallback), and body text falls back to system
+  fonts instantly — so text paints immediately.
+- **Optional last mile — self-host the fonts** (removes the Google Fonts
+  request entirely):
   1. Download Oswald (500/600/700) + Inter (400/500/600/700) as `woff2`.
-  2. Drop them in `/fonts` and replace the `<link ...fonts.googleapis...>`
-     with local `@font-face` rules using `font-display: swap`.
+  2. Drop them in `/fonts` and replace the three font `<link>` tags with local
+     `@font-face` rules using `font-display: swap`.
 - Everything else is inline in one file → 1 HTML request + fonts + images.
-  Expect 95+ Lighthouse once fonts are self-hosted and real images are sized.
+  Expect 95+ Lighthouse once real images are sized (and ~100 once fonts are
+  self-hosted).
 
 ## 6. Custom domain + SEO
 - Point `www.outbackarms.com` at your host; enable HTTPS (automatic on
