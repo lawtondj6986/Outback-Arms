@@ -62,8 +62,8 @@
   },
   "geo": { "@type": "GeoCoordinates", "latitude": 41.9529, "longitude": -70.8134 },
   "openingHoursSpecification": [
-    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Thursday"], "opens": "10:00", "closes": "17:00" },
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Wednesday","Friday"], "opens": "10:00", "closes": "18:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Thursday", "opens": "10:00", "closes": "17:00" },
     { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "08:00", "closes": "17:00" }
   ],
   "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "213" },
@@ -603,7 +603,7 @@ footer li a:hover{color:var(--accent-2)}
       <span class="pill">21+</span>
       <span>FFL Dealer · Plympton, MA</span>
       <a href="tel:+17815856615" aria-label="Call Outback Arms at 781-585-6615">📞 781-585-6615</a>
-      <span id="hoursNow">Sat 8a–5p · Closed Sundays</span>
+      <span id="hoursNow">Open Wed–Sat · Closed Sun–Tue</span>
     </div>
     <div class="right">
       <a href="#portal">Account Portal</a><span aria-hidden="true">·</span>
@@ -1527,7 +1527,7 @@ footer li a:hover{color:var(--accent-2)}
             <h3>Store Hours</h3>
             <p class="desc">Edits push to homepage footer and Google Business Profile.</p>
             <div class="row2">
-              <div class="field"><label>Mon–Tue</label><input value="10:00 AM – 5:00 PM"/></div>
+              <div class="field"><label>Sun–Tue</label><input value="Closed"/></div>
               <div class="field"><label>Wed</label><input value="10:00 AM – 6:00 PM"/></div>
             </div>
             <div class="row2">
@@ -1586,9 +1586,9 @@ footer li a:hover{color:var(--accent-2)}
       <div>
         <h5>Hours</h5>
         <ul style="color:var(--ink-2)">
-          <li>Mon–Tue · 10a–5p</li><li>Wed · 10a–6p</li>
-          <li>Thu · 10a–5p</li><li>Fri · 10a–6p</li>
-          <li>Sat · 8a–5p</li><li>Sun · Closed</li>
+          <li>Wed · 10a–6p</li><li>Thu · 10a–5p</li>
+          <li>Fri · 10a–6p</li><li>Sat · 8a–5p</li>
+          <li>Sun–Tue · Closed</li>
         </ul>
       </div>
     </div>
@@ -2822,9 +2822,13 @@ document.querySelectorAll('.channel-tabs').forEach(group => {
    visitors in any timezone. [BACKEND] pull HOURS from Site Settings later.
    ===================================================================== */
 const HOURS = {           // [open, close] in 24h ET; null = closed
-  0: null,                // Sun
-  1: [10, 17], 2: [10, 17], 3: [10, 18], 4: [10, 17], 5: [10, 18],  // Mon–Fri
-  6: [8, 17]              // Sat
+  0: null,                // Sun — closed
+  1: null,                // Mon — closed
+  2: null,                // Tue — closed
+  3: [10, 18],            // Wed 10a–6p
+  4: [10, 17],            // Thu 10a–5p
+  5: [10, 18],            // Fri 10a–6p
+  6: [8, 17]              // Sat 8a–5p
 };
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function fmtHour(h) { const ap = h >= 12 ? 'p' : 'a'; let hr = h % 12; if (hr === 0) hr = 12; return hr + ap; }
