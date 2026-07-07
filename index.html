@@ -679,7 +679,7 @@ footer li a:hover{color:var(--accent-2)}
         <div><b>14 yrs</b><span>On the South Shore</span></div>
       </div>
     </div>
-    <aside class="hero-card" aria-labelledby="gotwTitle">
+    <aside class="hero-card" id="gotwCard" aria-labelledby="gotwTitle">
       <span class="tag"><span aria-hidden="true">🎯</span> Gun of the Week</span>
       <h3 id="gotwTitle">Sig Sauer Cross Bolt-Action</h3>
       <div class="price">$1,649 <s>$1,899</s> <span class="save">Save $250</span></div>
@@ -1401,6 +1401,10 @@ footer li a:hover{color:var(--accent-2)}
         <div class="form-card">
           <h3 id="formTitle">Add New Product</h3>
           <p class="desc">All fields marked * are required. Photo upload accepts JPG/PNG/WebP up to 5 MB — the image is automatically resized to 800px wide for fast page loads.</p>
+          <div id="editBanner" style="display:none;background:rgba(239,108,31,.12);border:1px solid var(--accent);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px;font-size:14px;display:none;align-items:center;gap:10px">
+            <span style="font-size:18px" aria-hidden="true">✏️</span>
+            <span>You're <b>editing an existing product</b>: <b id="editBannerName" style="color:var(--accent-2)"></b>. Change any field below and click <b>Save Changes</b> — it updates the live storefront instantly.</span>
+          </div>
           <input type="hidden" id="editId"/>
           <div class="row2">
             <div class="field"><label for="fName">Product name *</label><input id="fName" placeholder="Glock G19 Gen 5 9mm"/></div>
@@ -1436,7 +1440,7 @@ footer li a:hover{color:var(--accent-2)}
             </div>
           </div>
           <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="saveProduct()">💾 Save Product</button>
+            <button class="btn btn-primary" id="saveBtn" onclick="saveProduct()">💾 Save Product</button>
             <button class="btn btn-ghost" onclick="resetForm();adminTab('inv')">Cancel</button>
             <button class="btn btn-ghost" id="seedBtn" onclick="seedInventory(true)" style="margin-left:auto">↻ Reset to demo inventory</button>
           </div>
@@ -1542,11 +1546,12 @@ footer li a:hover{color:var(--accent-2)}
           </div>
           <div class="form-card">
             <h3>Featured "Gun of the Week"</h3>
-            <p class="desc">Choose any in-stock product to feature in the hero and weekly email.</p>
-            <div class="field"><label for="gotwSelect">Featured SKU</label><select id="gotwSelect"></select></div>
-            <div class="field"><label>Sale price (optional)</label><input placeholder="1649.00"/></div>
-            <div class="field"><label>Original price (shown crossed out)</label><input placeholder="1899.00"/></div>
-            <button class="btn btn-primary" onclick="toast('Updated','Gun of the Week will refresh on the storefront.','ok')">Update Gun of the Week</button>
+            <p class="desc">Pick any in-stock product to feature in the big hero card at the top of the site. Its <b>photo, name, and price come straight from that product</b> — so to change the photo, just edit that product's photo in the Inventory tab.</p>
+            <div class="field"><label for="gotwSelect">Featured product</label><select id="gotwSelect"></select></div>
+            <div class="field"><label for="gotwSale">Sale price (optional)</label><input id="gotwSale" type="number" step="0.01" placeholder="e.g. 1649.00"/><span class="err-msg">&nbsp;</span></div>
+            <p class="fine" style="margin-top:0">Leave blank to show the regular price. If set, the regular price is shown crossed out with the savings.</p>
+            <button class="btn btn-primary" onclick="setGotwFromSettings()">Update Gun of the Week</button>
+            <p class="fine" id="gotwSqlNote" style="margin-top:12px;padding:10px;background:#0e0f10;border-radius:6px;border:1px dashed var(--khaki)">One-time setup: run this once in the Supabase SQL editor so the feature saves for all visitors —<br/><code style="color:var(--ink)">alter table products add column if not exists featured boolean not null default false; alter table products add column if not exists sale_price numeric;</code></p>
           </div>
         </div>
       </div>
@@ -2610,8 +2615,9 @@ function renderAdmin() {
       '<td>' + (p.stock === 0 ? '<span class="status bg">0</span>' : (p.stock <= 2 ? '<span class="status hold">' + p.stock + '</span>' : '<span class="status ship">' + p.stock + '</span>')) + '</td>' +
       '<td>' + escapeHtml(p.cond) + '</td>' +
       '<td style="padding-right:22px;white-space:nowrap">' +
-        '<button class="btn btn-ghost" style="padding:6px 10px;font-size:12px" onclick="editProduct(' + p.id + ')">Edit</button> ' +
-        '<button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;border-color:#5a2a24;color:#e89289" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
+        '<button class="btn btn-primary" style="padding:7px 12px;font-size:12px" onclick="editProduct(' + p.id + ')">✏️ Edit</button> ' +
+        '<button title="Feature in the hero as Gun of the Week" class="btn btn-ghost" style="padding:7px 10px;font-size:12px" onclick="setGotw(' + p.id + ')">★ GotW</button> ' +
+        '<button class="btn btn-ghost" style="padding:7px 10px;font-size:12px;border-color:#5a2a24;color:#e89289" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
       '</td>' +
     '</tr>'
   ).join('') || '<tr><td colspan="8" style="text-align:center;padding:40px 20px;color:var(--mute)"><div style="font-size:32px;margin-bottom:8px">📦</div><b style="font-family:Oswald;color:var(--ink);display:block;margin-bottom:4px">No products match</b>Add a product or reset to demo inventory.</td></tr>';
@@ -2630,10 +2636,18 @@ function editProduct(id) {
   document.getElementById('fPhotoUrl').value = p.img || '';
   document.getElementById('photoPreview').src = p.img || '';
   document.getElementById('formTitle').textContent = 'Edit Product';
+  // make it obvious this is an EDIT, not a new product
+  const banner = document.getElementById('editBanner');
+  document.getElementById('editBannerName').textContent = p.brand + ' ' + p.name;
+  banner.style.display = 'flex';
+  document.getElementById('saveBtn').textContent = '💾 Save Changes';
   adminTab('add');
   const tabs = document.querySelectorAll('#adminDash .channel-tabs button');
   tabs.forEach(b => { b.classList.remove('on'); b.setAttribute('aria-selected', 'false'); });
   tabs[1].classList.add('on'); tabs[1].setAttribute('aria-selected', 'true');
+  // scroll the form into view so the user sees the pre-filled fields
+  document.getElementById('tab-add').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => document.getElementById('fName').focus(), 300);
 }
 function deleteProduct(id) {
   const p = loadInventory().find(x => x.id === id);
@@ -2718,6 +2732,8 @@ function resetForm() {
   document.getElementById('fPhoto').value = '';
   document.getElementById('photoPreview').src = '';
   document.getElementById('formTitle').textContent = 'Add New Product';
+  document.getElementById('editBanner').style.display = 'none';
+  document.getElementById('saveBtn').textContent = '💾 Save Product';
 }
 
 /* ---------- photo upload ----------
@@ -2779,8 +2795,82 @@ async function uploadPhoto(blob, dataUrlFallback) {
 function renderGotwSelect() {
   const sel = document.getElementById('gotwSelect');
   if (!sel) return;
+  const cur = getGotw();
   sel.innerHTML = loadInventory().filter(i => i.stock > 0)
-    .map(i => '<option>' + escapeHtml(i.brand) + ' — ' + escapeHtml(i.name) + '</option>').join('');
+    .map(i => '<option value="' + i.id + '"' + (cur && cur.p.id === i.id ? ' selected' : '') + '>' + escapeHtml(i.brand) + ' — ' + escapeHtml(i.name) + '</option>').join('');
+  const saleEl = document.getElementById('gotwSale');
+  if (saleEl) saleEl.value = (cur && cur.sale) ? cur.sale : '';
+}
+
+/* =====================================================================
+   GUN OF THE WEEK — feature a product in the hero card.
+   Supabase: products.featured / products.sale_price columns (run the ALTER
+   shown in Site Settings once). Demo: localStorage 'oa_gotw'.
+   The hero photo/name/price come from the chosen product.
+   ===================================================================== */
+function getGotw() {
+  if (usingSupabase()) {
+    const p = INVENTORY.find(x => x.featured);
+    return p ? { p, sale: p.sale_price } : null;
+  }
+  try {
+    const g = JSON.parse(localStorage.getItem('oa_gotw') || 'null');
+    if (!g) return null;
+    const p = INVENTORY.find(x => x.id === g.id);
+    return p ? { p, sale: g.sale } : null;
+  } catch (e) { return null; }
+}
+function renderGotw() {
+  const card = document.getElementById('gotwCard');
+  if (!card) return;
+  const g = getGotw();
+  if (!g) return;                       // no selection → keep the default static hero
+  const p = g.p, esc = escapeHtml;
+  const name = p.brand + ' ' + p.name;
+  const hasSale = g.sale && Number(g.sale) > 0 && Number(g.sale) < Number(p.price);
+  const price = hasSale ? Number(g.sale) : Number(p.price);
+  const orig = hasSale ? Number(p.price) : null;
+  const save = orig ? orig - price : 0;
+  const nameJs = name.replace(/'/g, "\\'");
+  const stockLine = p.stock === 0 ? 'Backorder — ask us' : (p.stock <= 2 ? 'Only ' + p.stock + ' left' : '✓ ' + p.stock + ' in stock');
+  card.innerHTML =
+    '<span class="tag"><span aria-hidden="true">🎯</span> Gun of the Week</span>' +
+    '<h3 id="gotwTitle">' + esc(name) + '</h3>' +
+    '<div class="price">$' + price.toLocaleString() + (orig ? ' <s>$' + orig.toLocaleString() + '</s>' + (save > 0 ? ' <span class="save">Save $' + save.toLocaleString() + '</span>' : '') : '') + '</div>' +
+    '<div class="gun-svg"><img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + esc(name) + '" width="700" height="350" fetchpriority="high" onerror="if(window.imgFail)imgFail(this)"/></div>' +
+    (p.stock > 0 && p.stock <= 2 ? '<div class="scarcity"><span class="dotwarn" aria-hidden="true"></span> Only ' + p.stock + ' left — see it in store</div>' : '') +
+    '<div class="specs"><span>Brand</span><b>' + esc(p.brand) + '</b><span>Category</span><b>' + esc(p.cat) + '</b><span>Condition</span><b>' + esc(p.cond) + '</b><span>Availability</span><b>' + esc(stockLine) + '</b></div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button class="btn btn-primary btn-block" onclick="openHold(\'' + nameJs + '\')">Hold This Gun</button>' +
+      '<button class="icon-btn" title="Add to wishlist" aria-label="Add ' + esc(name) + ' to wishlist" onclick="quickWish(\'' + nameJs + '\', this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>' +
+    '</div>';
+}
+async function setGotw(id, sale) {
+  const p = INVENTORY.find(x => x.id === id);
+  if (!p) return;
+  sale = (sale && Number(sale) > 0) ? Number(sale) : null;
+  if (usingSupabase()) {
+    try {
+      await sb.from('products').update({ featured: false }).neq('id', -1);   // clear previous
+      const { error } = await sb.from('products').update({ featured: true, sale_price: sale }).eq('id', id);
+      if (error) throw error;
+      INVENTORY.forEach(x => { x.featured = (x.id === id); if (x.id === id) x.sale_price = sale; });
+    } catch (e) {
+      toast('One-time setup needed', 'Run the two SQL lines shown in Site Settings (adds featured & sale_price columns), then try again.', 'err');
+      return;
+    }
+  } else {
+    localStorage.setItem('oa_gotw', JSON.stringify({ id, sale }));
+  }
+  renderGotw();
+  renderAdmin();
+  toast('Gun of the Week updated', '"' + p.brand + ' ' + p.name + '" is now featured in the hero.', 'ok');
+}
+function setGotwFromSettings() {
+  const sel = document.getElementById('gotwSelect');
+  if (!sel || !sel.value) { toast('Pick a product', 'Choose a product to feature first.', 'err'); return; }
+  const sale = parseFloat(document.getElementById('gotwSale').value);
+  setGotw(parseInt(sel.value, 10), isNaN(sale) ? null : sale);
 }
 
 /* =====================================================================
@@ -2865,6 +2955,7 @@ function updateOpenStatus() {
    ===================================================================== */
 function renderAll() {
   renderStorefront();
+  renderGotw();            // refresh the hero Gun-of-the-Week card
   updateWishCount();
   // refresh the admin table whenever the dashboard is on screen (either mode)
   const dash = document.getElementById('adminDash');

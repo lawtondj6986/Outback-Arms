@@ -20,6 +20,10 @@ create table if not exists public.products (
   updated_at timestamptz not null default now()
 );
 
+-- Gun of the Week: one product can be featured in the hero, with an optional sale price
+alter table public.products add column if not exists featured boolean not null default false;
+alter table public.products add column if not exists sale_price numeric;
+
 -- keep updated_at fresh on every write
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql as $$
