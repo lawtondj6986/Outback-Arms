@@ -676,26 +676,23 @@ footer li a:hover{color:var(--accent-2)}
         <div><b>1,400+</b><span>Firearms Sold</span></div>
         <div><b>89</b><span>Rifles In Stock</span></div>
         <div><b>4.9★</b><span>Google Rating</span></div>
-        <div><b>14 yrs</b><span>On the South Shore</span></div>
+        <div><b>14+ yrs</b><span>On the South Shore</span></div>
       </div>
     </div>
-    <aside class="hero-card" id="gotwCard" aria-labelledby="gotwTitle">
-      <span class="tag"><span aria-hidden="true">🎯</span> Gun of the Week</span>
-      <h3 id="gotwTitle">Sig Sauer Cross Bolt-Action</h3>
-      <div class="price">$1,649 <s>$1,899</s> <span class="save">Save $250</span></div>
-      <div class="gun-svg">
-        <img src="https://images.unsplash.com/photo-1669489890884-baff10f74b49?w=700&h=350&fit=crop&q=70" alt="Sig Sauer Cross bolt-action rifle in 6.5 Creedmoor" width="700" height="350" fetchpriority="high" onerror="if(window.imgFail)imgFail(this)"/>
-      </div>
-      <div class="scarcity"><span class="dotwarn" aria-hidden="true"></span> Only 2 left · deal ends Wednesday</div>
-      <div class="specs">
-        <span>Caliber</span><b>6.5 Creedmoor</b>
-        <span>Barrel</span><b>18" Stainless</b>
-        <span>Capacity</span><b>5+1</b>
-        <span>Condition</span><b>New in Box</b>
+    <aside class="hero-card" aria-labelledby="visitTitle">
+      <span class="tag"><span aria-hidden="true">📍</span> Visit the Shop</span>
+      <h3 id="visitTitle">376 Main Street<br/>Plympton, MA 02367</h3>
+      <div id="heroHoursStatus" class="scarcity" style="color:var(--ok);margin:2px 0 14px">● Open today</div>
+      <div class="specs" style="margin-bottom:16px">
+        <span>Wednesday</span><b>10a – 6p</b>
+        <span>Thursday</span><b>10a – 5p</b>
+        <span>Friday</span><b>10a – 6p</b>
+        <span>Saturday</span><b>8a – 5p</b>
+        <span>Sun – Tue</span><b>Closed</b>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-block" onclick="openHold('Sig Sauer Cross 6.5 Creedmoor')">Hold This Gun</button>
-        <button class="icon-btn" title="Add to wishlist" aria-label="Add Sig Sauer Cross to wishlist" onclick="quickWish('Sig Sauer Cross 6.5 Creedmoor', this)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+        <a class="btn btn-primary btn-block" href="https://maps.google.com/?q=376+Main+Street,+Plympton,+MA+02367" target="_blank" rel="noopener">Get Directions</a>
+        <a class="btn btn-ghost" href="tel:+17815856615" aria-label="Call 781-585-6615">Call</a>
       </div>
     </aside>
   </div>
@@ -1307,7 +1304,7 @@ footer li a:hover{color:var(--accent-2)}
 <section class="block" style="padding:var(--s-7) 0" aria-label="Why trust Outback Arms">
   <div class="container">
     <div class="trust">
-      <div><div class="t-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><b>FFL Verified</b><span>14 years licensed in MA</span></div>
+      <div><div class="t-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><b>FFL Verified</b><span>14+ years licensed in MA</span></div>
       <div><div class="t-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div><b>Real Inventory</b><span>Updated every 24 hrs</span></div>
       <div><div class="t-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><b>Held by Staff</b><span>Every order verified by a human</span></div>
       <div><div class="t-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><b>Trade-In Friendly</b><span>Cash, credit, or consign</span></div>
@@ -1545,13 +1542,12 @@ footer li a:hover{color:var(--accent-2)}
             <button class="btn btn-primary" onclick="toast('Hours saved','Store hours updated on the storefront.','ok')">Save Hours</button>
           </div>
           <div class="form-card">
-            <h3>Featured "Gun of the Week"</h3>
-            <p class="desc">Pick any in-stock product to feature in the big hero card at the top of the site. Its <b>photo, name, and price come straight from that product</b> — so to change the photo, just edit that product's photo in the Inventory tab.</p>
-            <div class="field"><label for="gotwSelect">Featured product</label><select id="gotwSelect"></select></div>
-            <div class="field"><label for="gotwSale">Sale price (optional)</label><input id="gotwSale" type="number" step="0.01" placeholder="e.g. 1649.00"/><span class="err-msg">&nbsp;</span></div>
-            <p class="fine" style="margin-top:0">Leave blank to show the regular price. If set, the regular price is shown crossed out with the savings.</p>
-            <button class="btn btn-primary" onclick="setGotwFromSettings()">Update Gun of the Week</button>
-            <p class="fine" id="gotwSqlNote" style="margin-top:12px;padding:10px;background:#0e0f10;border-radius:6px;border:1px dashed var(--khaki)">One-time setup: run this once in the Supabase SQL editor so the feature saves for all visitors —<br/><code style="color:var(--ink)">alter table products add column if not exists featured boolean not null default false; alter table products add column if not exists sale_price numeric;</code></p>
+            <h3>Store Contact</h3>
+            <p class="desc">Shown in the header, hero, and footer.</p>
+            <div class="field"><label>Phone</label><input value="781-585-6615"/></div>
+            <div class="field"><label>Address</label><input value="376 Main Street, Plympton, MA 02367"/></div>
+            <div class="field"><label>Google Business Profile URL</label><input placeholder="https://maps.google.com/..."/></div>
+            <button class="btn btn-primary" onclick="toast('Saved','Contact details updated.','ok')">Save Contact</button>
           </div>
         </div>
       </div>
@@ -2616,7 +2612,6 @@ function renderAdmin() {
       '<td>' + escapeHtml(p.cond) + '</td>' +
       '<td style="padding-right:22px;white-space:nowrap">' +
         '<button class="btn btn-primary" style="padding:7px 12px;font-size:12px" onclick="editProduct(' + p.id + ')">✏️ Edit</button> ' +
-        '<button title="Feature in the hero as Gun of the Week" class="btn btn-ghost" style="padding:7px 10px;font-size:12px" onclick="setGotw(' + p.id + ')">★ GotW</button> ' +
         '<button class="btn btn-ghost" style="padding:7px 10px;font-size:12px;border-color:#5a2a24;color:#e89289" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
       '</td>' +
     '</tr>'
@@ -2924,7 +2919,8 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function fmtHour(h) { const ap = h >= 12 ? 'p' : 'a'; let hr = h % 12; if (hr === 0) hr = 12; return hr + ap; }
 function updateOpenStatus() {
   const el = document.getElementById('hoursNow');
-  if (!el) return;
+  const heroEl = document.getElementById('heroHoursStatus');
+  if (!el && !heroEl) return;
   // current time in ET regardless of the visitor's own timezone
   const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(new Date());
   const wd = parts.find(p => p.type === 'weekday').value;
@@ -2947,7 +2943,8 @@ function updateOpenStatus() {
       html = '<span style="color:var(--warn);font-weight:700">● Closed</span> · opens ' + fmtHour(HOURS[nd][0]) + ' ' + label;
     }
   }
-  el.innerHTML = html;
+  if (el) el.innerHTML = html;
+  if (heroEl) heroEl.innerHTML = html;
 }
 
 /* =====================================================================
