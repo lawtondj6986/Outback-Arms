@@ -204,6 +204,21 @@ h1,h2,h3,h4,h5{font-family:'Oswald',sans-serif}
 .gun-svg img{width:100%;height:100%;object-fit:cover}
 .hero-card .scarcity{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--warn);margin-bottom:var(--s-3);font-weight:600}
 .hero-card .scarcity .dotwarn{width:7px;height:7px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 4px rgba(240,196,84,.15)}
+/* ---- Call / hours hero card ---- */
+.call-card{text-align:center}
+.call-card .tag{margin:0 auto var(--s-4)}
+.call-label{color:var(--mute);font-size:14px;margin:0 0 var(--s-1);font-weight:500}
+.call-number{display:inline-block;font-family:'Oswald';font-weight:700;font-size:46px;line-height:1;letter-spacing:.01em;color:var(--ink);transition:var(--ease);text-shadow:0 2px 20px rgba(239,108,31,.15)}
+.call-number:hover,.call-number:focus-visible{color:var(--accent-2)}
+.hero-status{font-size:13.5px;font-weight:700;margin:var(--s-3) 0 var(--s-4);display:flex;align-items:center;justify-content:center;gap:6px}
+.call-cta{gap:10px;font-size:16px;box-shadow:var(--sh-glow);position:relative}
+.call-cta svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
+.call-cta::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 0 rgba(239,108,31,.5);animation:callPulse 2.4s ease-out infinite}
+@keyframes callPulse{0%{box-shadow:0 0 0 0 rgba(239,108,31,.45)}70%{box-shadow:0 0 0 14px rgba(239,108,31,0)}100%{box-shadow:0 0 0 0 rgba(239,108,31,0)}}
+.hours-box{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:var(--s-5) 0 var(--s-4);padding:var(--s-4) 0}
+.hours-title{font-family:'Oswald';font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2);margin-bottom:var(--s-3);text-align:left}
+.call-card .specs{text-align:left}
+@media (prefers-reduced-motion:reduce){.call-cta::after{animation:none}}
 
 /* ---------- Section base ---------- */
 section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
@@ -679,21 +694,26 @@ footer li a:hover{color:var(--accent-2)}
         <div><b>14+ yrs</b><span>On the South Shore</span></div>
       </div>
     </div>
-    <aside class="hero-card" aria-labelledby="visitTitle">
-      <span class="tag"><span aria-hidden="true">📍</span> Visit the Shop</span>
-      <h3 id="visitTitle">376 Main Street<br/>Plympton, MA 02367</h3>
-      <div id="heroHoursStatus" class="scarcity" style="color:var(--ok);margin:2px 0 14px">● Open today</div>
-      <div class="specs" style="margin-bottom:16px">
-        <span>Wednesday</span><b>10a – 6p</b>
-        <span>Thursday</span><b>10a – 5p</b>
-        <span>Friday</span><b>10a – 6p</b>
-        <span>Saturday</span><b>8a – 5p</b>
-        <span>Sun – Tue</span><b>Closed</b>
+    <aside class="hero-card call-card" aria-labelledby="callTitle">
+      <span class="tag"><span aria-hidden="true">📞</span> Talk to a Real Person</span>
+      <p class="call-label" id="callTitle">Questions? Call the shop —</p>
+      <a class="call-number" href="tel:+17815856615" aria-label="Call Outback Arms at 781-585-6615">781-585-6615</a>
+      <div id="heroHoursStatus" class="hero-status">● Checking hours…</div>
+      <a class="btn btn-primary btn-block btn-lg call-cta" href="tel:+17815856615">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Call Now
+      </a>
+      <div class="hours-box">
+        <div class="hours-title">Store Hours <span style="color:var(--mute);font-weight:400;text-transform:none;letter-spacing:0">· 376 Main St, Plympton MA</span></div>
+        <div class="specs">
+          <span>Wednesday</span><b>10a – 6p</b>
+          <span>Thursday</span><b>10a – 5p</b>
+          <span>Friday</span><b>10a – 6p</b>
+          <span>Saturday</span><b>8a – 5p</b>
+          <span>Sun – Tue</span><b>Closed</b>
+        </div>
       </div>
-      <div style="display:flex;gap:8px">
-        <a class="btn btn-primary btn-block" href="https://maps.google.com/?q=376+Main+Street,+Plympton,+MA+02367" target="_blank" rel="noopener">Get Directions</a>
-        <a class="btn btn-ghost" href="tel:+17815856615" aria-label="Call 781-585-6615">Call</a>
-      </div>
+      <a class="btn btn-ghost btn-block" href="https://maps.google.com/?q=376+Main+Street,+Plympton,+MA+02367" target="_blank" rel="noopener">Get Directions →</a>
     </aside>
   </div>
 </section>
