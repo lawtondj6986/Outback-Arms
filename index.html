@@ -700,7 +700,7 @@ footer li a:hover{color:var(--accent-2)}
     <div class="nav-cta">
       <button class="icon-btn" title="Search inventory" aria-label="Search inventory" onclick="focusFilterSearch()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
       <button class="icon-btn" title="View wishlist" aria-label="View wishlist" onclick="openWishlist()"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="count" id="wishCount" style="display:none">0</span></button>
-      <a href="#portal" class="btn btn-ghost">Sign In</a>
+      <button class="btn btn-ghost" id="authBtn" onclick="onAuthBtn()">Sign In</button>
       <a href="#products" class="btn btn-primary">Shop Now</a>
       <button class="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primaryMenu" onclick="toggleMenu(this)">☰</button>
     </div>
@@ -1039,78 +1039,22 @@ footer li a:hover{color:var(--accent-2)}
         <h2 id="portalTitle">One place for orders, holds, FFL &amp; trade-in offers.</h2>
         <p>Every Outback Arms customer gets a free portal account. Save your FFL on file, watch live status on layaways, and control exactly how we contact you.</p>
       </div>
-      <button class="btn btn-primary" onclick="toast('Account portal','Account signup connects to your CRM in production. This is a live design preview.','ok')">Create My Account</button>
+      <button class="btn btn-primary" id="portalCta" onclick="openAuth('signup')">Create My Account</button>
     </div>
 
-    <div class="portal-shell">
-      <aside class="portal-side" aria-label="Portal navigation">
-        <div class="portal-user">
-          <div class="avatar" aria-hidden="true">DJ</div>
-          <b>Dan Jameson</b>
-          <span>Member since 2023 · Tier: Patriot</span>
-        </div>
-        <nav>
-          <a class="active" aria-current="page">📊 Dashboard</a>
-          <a>🛒 My Orders (3)</a>
-          <a>⏸ Active Holds (1)</a>
-          <a>📄 FFL on File</a>
-          <a>♻️ My Trade-Ins</a>
-          <a>❤️ Wishlist (<span id="portalWish">0</span>)</a>
-          <a>🎯 Classes &amp; Range</a>
-          <a>🔔 Notifications</a>
-          <a>⚙️ Profile &amp; Comms</a>
-        </nav>
-      </aside>
-      <main class="portal-main">
-        <div class="portal-head">
-          <h3>Welcome back, Dan.</h3>
-          <div><span class="status ship">Hold ready for pickup</span></div>
-        </div>
-        <div class="kpi-row">
-          <div class="kpi"><span>Lifetime Spend</span><b>$4,287</b><div class="delta">+ $329 last 30d</div></div>
-          <div class="kpi"><span>Loyalty Points</span><b>1,820</b><div class="delta">$182 reward ready</div></div>
-          <div class="kpi"><span>Active Holds</span><b>1</b><div class="delta">Expires Fri 6/05</div></div>
-          <div class="kpi"><span>Trade Credit</span><b>$215</b><div class="delta">From Mossberg 500</div></div>
-        </div>
-        <div class="portal-twocol">
-          <div class="panel">
-            <h4>Recent Orders <a onclick="toast('Orders','Full order history opens here in production.','ok')">View all</a></h4>
-            <table class="tbl">
-              <thead><tr><th scope="col">Item</th><th scope="col">Date</th><th scope="col">Status</th><th scope="col">Total</th></tr></thead>
-              <tbody>
-                <tr><td>Sig Cross 6.5 CM</td><td>May 22</td><td><span class="status hold">FFL Hold</span></td><td>$1,649</td></tr>
-                <tr><td>500rd 5.56 case</td><td>May 18</td><td><span class="status ship">Shipped</span></td><td>$249</td></tr>
-                <tr><td>Vortex Strike Eagle</td><td>Apr 30</td><td><span class="status ship">Picked up</span></td><td>$549</td></tr>
-                <tr><td>Glock 19 Gen 5</td><td>Apr 12</td><td><span class="status bg">Background check</span></td><td>$649</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div>
-            <div class="panel" style="margin-bottom:14px">
-              <h4>FFL on File <a onclick="toast('FFL on file','Update your default transfer dealer here.','ok')">Change</a></h4>
-              <div class="ffl-card">
-                <b>OUTBACK ARMS LLC</b><br/>
-                <span style="font-size:13px;color:var(--ink-2)">376 Main Street, Plympton, MA 02367</span><br/>
-                <span style="font-size:12px;color:var(--mute)">FFL # 1-04-XXX-XX-XX-XXXXX · Expires 06/2027</span>
-              </div>
-              <p style="font-size:12px;color:var(--mute);margin:0">Default ship-to for all firearm purchases. Verified by Outback staff.</p>
-            </div>
-            <div class="panel">
-              <h4>How We Contact You</h4>
-              <div class="toggles">
-                <label>Order updates (SMS) <button class="switch on" role="switch" aria-checked="true" aria-label="Order updates by SMS"></button></label>
-                <label>Gun of the Week (Email) <button class="switch on" role="switch" aria-checked="true" aria-label="Gun of the Week email"></button></label>
-                <label>Wacky Wednesday (SMS) <button class="switch on" role="switch" aria-checked="true" aria-label="Wacky Wednesday SMS"></button></label>
-                <label>Range &amp; class invites <button class="switch on" role="switch" aria-checked="true" aria-label="Range and class invites"></button></label>
-                <label>Trade-in offers <button class="switch" role="switch" aria-checked="false" aria-label="Trade-in offers"></button></label>
-                <label>Manufacturer rebates <button class="switch on" role="switch" aria-checked="true" aria-label="Manufacturer rebates"></button></label>
-              </div>
-              <p class="fine">Reply STOP anytime to opt out of SMS. Standard rates apply. Your data is never sold. 21+ to subscribe.</p>
-            </div>
-          </div>
-        </div>
-      </main>
+    <!-- Signed-out prompt -->
+    <div id="portalGuest" class="form-card" style="max-width:600px;margin:0 auto;text-align:center">
+      <div style="font-size:40px" aria-hidden="true">🔐</div>
+      <h3 style="margin:8px 0 6px;font-size:24px">Sign in to your account</h3>
+      <p style="color:var(--mute);font-size:14.5px;margin:0 auto 20px;line-height:1.6;max-width:440px">Create a free account to save your wishlist across devices, track your hold &amp; trade-in requests, and manage how we contact you.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" onclick="openAuth('signin')">Sign In</button>
+        <button class="btn btn-ghost btn-lg" onclick="openAuth('signup')">Create Account</button>
+      </div>
     </div>
+
+    <!-- Signed-in portal (rendered live by renderPortal) -->
+    <div id="portalShell" class="portal-shell" style="display:none"></div>
   </div>
 </section>
 
@@ -2329,9 +2273,13 @@ async function submitLead(type, payload) {
   const record = { type, payload, source: 'website', created_at: new Date().toISOString() };
   try {
     track('generate_lead', { lead_type: type });                     // GA4 conversion event
+    // tie the lead to the signed-in customer (so it shows in their portal)
+    const row = { type, payload, source: 'website' };
+    if (isCustomer() && CUSTOMER.id && !String(CUSTOMER.id).startsWith('local')) row.user_id = CUSTOMER.id;
     if (usingSupabase()) {
-      const { error } = await sb.from('leads').insert({ type, payload, source: 'website' });
+      const { error } = await sb.from('leads').insert(row);
       if (error) throw error;
+      renderPortal();   // refresh the customer's "My Requests" if they're signed in
       return true;
     }
     if (LEAD_WEBHOOK) {
@@ -2403,6 +2351,13 @@ async function doLogin() {
     // Real authentication — create staff users in Supabase ▸ Auth ▸ Users.
     const { error } = await sb.auth.signInWithPassword({ email: u, password: p });
     if (error) { errEl.textContent = error.message || 'Wrong email or password.'; errEl.style.display = 'block'; return; }
+    // authorization: only profiles.is_staff = true may enter the admin console
+    if (!(await isStaffUser())) {
+      await sb.auth.signOut();
+      errEl.textContent = 'This account is not authorized for staff access.';
+      errEl.style.display = 'block';
+      return;
+    }
     showDash();
     toast('Welcome back', 'Signed in to the admin console.', 'ok');
     return;
@@ -2445,10 +2400,22 @@ function adjustAdminLoginUI() {
   if (input) { input.placeholder = 'you@outbackarms.com'; input.type = 'email'; input.autocomplete = 'email'; }
   if (demo) demo.innerHTML = '<b style="color:var(--accent-2)">STAFF SIGN-IN</b><br/>Use the email &amp; password created in your Supabase project. Forgot it? Reset from the Supabase dashboard.';
 }
+// Is the currently signed-in Supabase user a staff member? (profiles.is_staff)
+// This is what keeps CUSTOMERS out of the admin console once customer accounts
+// exist — a customer session is a valid Supabase session but is_staff = false.
+async function isStaffUser() {
+  if (!usingSupabase()) return true;   // local demo uses the username/password path
+  try {
+    const { data: s } = await sb.auth.getSession();
+    if (!s || !s.session) return false;
+    const { data } = await sb.from('profiles').select('is_staff').eq('id', s.session.user.id).maybeSingle();
+    return !!(data && data.is_staff);
+  } catch (e) { return false; }        // fail closed (deny) — run customer-accounts.sql to enable
+}
 // Restore an existing session on load (Supabase session or local demo flag).
 async function checkSession() {
   if (usingSupabase()) {
-    try { const { data } = await sb.auth.getSession(); if (data && data.session) showDash(); } catch (e) {}
+    try { if (await isStaffUser()) showDash(); } catch (e) {}
     return;
   }
   if (sessionStorage.getItem(SESSION_KEY) === 'true') showDash();
@@ -3155,6 +3122,208 @@ function renderAll() {
   });
 });
 
+/* =====================================================================
+   CUSTOMER ACCOUNTS (Supabase Auth) + live account portal
+   - Supabase mode: real signup / login / logout; profile in 'profiles',
+     requests read from 'leads' where user_id = the customer.
+   - Local/demo mode: a lightweight localStorage session so the UI works
+     offline for previews.
+   - Staff admin access is gated SEPARATELY by profiles.is_staff (see
+     customer-accounts.sql) so customers can never reach the admin console.
+   ===================================================================== */
+let CUSTOMER = null;
+function isCustomer() { return !!CUSTOMER; }
+function custInitials(n, e) {
+  const s = String(n || e || '?').trim();
+  const p = s.split(/\s+/);
+  return ((p[0] ? p[0][0] : '') + (p[1] ? p[1][0] : '')).toUpperCase() || s[0].toUpperCase();
+}
+async function initAuth() {
+  if (usingSupabase()) {
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data && data.session) await loadCustomer(data.session.user);
+      sb.auth.onAuthStateChange(async (_evt, session) => {
+        if (session && session.user) await loadCustomer(session.user);
+        else { CUSTOMER = null; refreshAuthUI(); renderPortal(); }
+      });
+    } catch (e) {}
+  } else {
+    try { CUSTOMER = JSON.parse(localStorage.getItem('oa_customer') || 'null'); } catch (e) { CUSTOMER = null; }
+  }
+  refreshAuthUI(); renderPortal();
+}
+async function loadCustomer(user) {
+  CUSTOMER = { id: user.id, email: user.email, name: (user.user_metadata && user.user_metadata.full_name) || '', phone: '', created: user.created_at };
+  if (usingSupabase()) {
+    try {
+      const { data } = await sb.from('profiles').select('full_name,phone,created_at').eq('id', user.id).maybeSingle();
+      if (data) { CUSTOMER.name = data.full_name || CUSTOMER.name; CUSTOMER.phone = data.phone || ''; CUSTOMER.created = data.created_at || CUSTOMER.created; }
+    } catch (e) {}
+  }
+  refreshAuthUI(); renderPortal();
+}
+function refreshAuthUI() {
+  const btn = document.getElementById('authBtn');
+  if (!btn) return;
+  if (isCustomer()) { btn.textContent = '👤 ' + String(CUSTOMER.name || CUSTOMER.email || 'Account').split(' ')[0]; btn.title = 'My account'; }
+  else { btn.textContent = 'Sign In'; btn.title = 'Sign in'; }
+}
+function onAuthBtn() {
+  if (isCustomer()) document.getElementById('portal').scrollIntoView({ behavior: 'smooth' });
+  else openAuth('signin');
+}
+function openAuth(mode) {
+  const signup = mode === 'signup';
+  openModal(
+    '<button class="modal-close" aria-label="Close" onclick="closeModal()">&times;</button>' +
+    '<div style="padding:var(--s-6);max-width:430px">' +
+      '<p class="eyebrow" style="margin-bottom:6px">Customer Account</p>' +
+      '<h3 id="modalTitle" style="font-family:Oswald;font-size:26px;margin:0 0 6px">' + (signup ? 'Create your account' : 'Welcome back') + '</h3>' +
+      '<p style="color:var(--mute);font-size:14px;margin:0 0 18px">' + (signup ? 'Save your wishlist, track requests, and manage how we reach you.' : 'Sign in to your Outback Arms account.') + '</p>' +
+      '<form id="authForm" novalidate>' +
+        (signup ? '<div class="field"><label for="auName">Full name</label><input id="auName" required placeholder="Dan Jameson"/><span class="err-msg">Enter your name.</span></div>' : '') +
+        '<div class="field"><label for="auEmail">Email</label><input id="auEmail" type="email" required placeholder="you@email.com" autocomplete="email"/><span class="err-msg">Enter a valid email.</span></div>' +
+        '<div class="field"><label for="auPass">Password</label><input id="auPass" type="password" required placeholder="••••••••" autocomplete="' + (signup ? 'new-password' : 'current-password') + '"/><span class="err-msg">At least 6 characters.</span></div>' +
+        (signup ? '<label class="chk"><input type="checkbox" required/> <span>I am 21+ and agree to the <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.</span></label>' : '') +
+        '<div id="authError" style="color:var(--bad);font-size:13px;margin:6px 0;display:none" role="alert"></div>' +
+        '<button class="btn btn-primary btn-block btn-lg" type="submit">' + (signup ? 'Create Account' : 'Sign In') + '</button>' +
+      '</form>' +
+      '<p style="text-align:center;font-size:13px;color:var(--mute);margin-top:16px">' +
+        (signup ? 'Already have an account? <a href="#" onclick="openAuth(\'signin\');return false;" style="color:var(--accent-2)">Sign in</a>'
+                : 'New here? <a href="#" onclick="openAuth(\'signup\');return false;" style="color:var(--accent-2)">Create an account</a>') + '</p>' +
+    '</div>'
+  );
+  document.getElementById('modalOverlay').setAttribute('aria-labelledby', 'modalTitle');
+  const form = document.getElementById('authForm');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!validateForm(form)) return;
+    const email = document.getElementById('auEmail').value.trim();
+    const pass = document.getElementById('auPass').value;
+    const name = signup ? document.getElementById('auName').value.trim() : '';
+    const errEl = document.getElementById('authError'); errEl.style.display = 'none';
+    const btn = form.querySelector('button[type=submit]'); btn.disabled = true; const lbl = btn.textContent; btn.textContent = 'Please wait…';
+    const res = signup ? await customerSignUp(email, pass, name) : await customerSignIn(email, pass);
+    btn.disabled = false; btn.textContent = lbl;
+    if (res.error) { errEl.textContent = res.error; errEl.style.display = 'block'; return; }
+    if (res.needConfirm) { successModal('Check your email 📧', 'We sent a confirmation link to <b>' + escapeHtml(email) + '</b>. Click it to activate your account, then sign in.'); return; }
+    closeModal();
+    toast('Signed in', 'Welcome' + (CUSTOMER && CUSTOMER.name ? ', ' + CUSTOMER.name.split(' ')[0] : '') + '!', 'ok');
+    document.getElementById('portal').scrollIntoView({ behavior: 'smooth' });
+  });
+}
+async function customerSignUp(email, pass, name) {
+  if (pass.length < 6) return { error: 'Password must be at least 6 characters.' };
+  if (usingSupabase()) {
+    try {
+      const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+      if (error) return { error: error.message };
+      if (data.user) { try { await sb.from('profiles').upsert({ id: data.user.id, email, full_name: name }); } catch (e) {} }
+      if (!data.session) return { needConfirm: true };   // email confirmation required
+      await loadCustomer(data.user); return {};
+    } catch (e) { return { error: String(e.message || e) }; }
+  }
+  CUSTOMER = { id: 'local_' + Date.now(), email, name, phone: '', created: new Date().toISOString() };
+  localStorage.setItem('oa_customer', JSON.stringify(CUSTOMER)); refreshAuthUI(); renderPortal(); return {};
+}
+async function customerSignIn(email, pass) {
+  if (usingSupabase()) {
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if (error) return { error: error.message };
+      await loadCustomer(data.user); return {};
+    } catch (e) { return { error: String(e.message || e) }; }
+  }
+  CUSTOMER = { id: 'local', email, name: email.split('@')[0], phone: '', created: new Date().toISOString() };
+  localStorage.setItem('oa_customer', JSON.stringify(CUSTOMER)); refreshAuthUI(); renderPortal(); return {};
+}
+async function customerSignOut() {
+  if (usingSupabase()) { try { await sb.auth.signOut(); } catch (e) {} }
+  localStorage.removeItem('oa_customer');
+  CUSTOMER = null; refreshAuthUI(); renderPortal();
+  toast('Signed out', 'You have been signed out.', 'ok');
+}
+// Render the live account portal (signed-in) or the guest prompt (signed-out).
+async function renderPortal() {
+  const guest = document.getElementById('portalGuest'), shell = document.getElementById('portalShell'), cta = document.getElementById('portalCta');
+  if (!guest || !shell) return;
+  if (!isCustomer()) {
+    guest.style.display = ''; shell.style.display = 'none';
+    if (cta) { cta.textContent = 'Create My Account'; cta.onclick = () => openAuth('signup'); }
+    return;
+  }
+  guest.style.display = 'none'; shell.style.display = '';
+  if (cta) { cta.textContent = 'Sign Out'; cta.onclick = () => customerSignOut(); }
+
+  const wish = loadWish();
+  let myLeads = [];
+  if (usingSupabase()) {
+    try { const { data } = await sb.from('leads').select('*').eq('user_id', CUSTOMER.id).order('created_at', { ascending: false }); myLeads = data || []; } catch (e) {}
+  } else {
+    try { myLeads = JSON.parse(localStorage.getItem('oa_leads') || '[]'); } catch (e) {}
+  }
+  const name = CUSTOMER.name || CUSTOMER.email.split('@')[0];
+  const first = name.split(' ')[0];
+  const memberYr = CUSTOMER.created ? new Date(CUSTOMER.created).getFullYear() : new Date().getFullYear();
+  const esc = escapeHtml;
+
+  const wishHtml = wish.length
+    ? '<ul style="list-style:none;padding:0;margin:0">' + wish.map(n =>
+        '<li style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #1a1d20;font-size:13.5px">❤️ ' + esc(n) +
+        '<button class="btn btn-ghost" style="padding:5px 9px;font-size:11px" onclick="quickWish(\'' + n.replace(/'/g, "\\'") + '\');renderPortal();">Remove</button></li>').join('') + '</ul>'
+    : '<p style="color:var(--mute);font-size:13px;margin:0">No saved items yet. Tap the ♥ on any product to save it.</p>';
+
+  const reqHtml = myLeads.length
+    ? '<table class="tbl"><thead><tr><th scope="col">Type</th><th scope="col">Details</th><th scope="col">When</th><th scope="col">Status</th></tr></thead><tbody>' +
+      myLeads.slice(0, 12).map(l => '<tr><td><span class="status ' + (l.type === 'hold' ? 'hold' : (l.type === 'inquiry' ? 'bg' : 'ship')) + '">' + (LEAD_LABEL[l.type] || l.type) + '</span></td>' +
+        '<td>' + esc(leadSummary(l.type, l.payload)) + '</td><td style="white-space:nowrap">' + fmtLeadDate(l.created_at) + '</td>' +
+        '<td>' + (l.handled ? '<span class="status ship">Handled</span>' : '<span class="status hold">Open</span>') + '</td></tr>').join('') + '</tbody></table>'
+    : '<p style="color:var(--mute);font-size:13px;margin:0">No requests yet. Submit a hold or an inquiry and it\'ll show here.</p>';
+
+  shell.innerHTML =
+    '<aside class="portal-side" aria-label="Portal navigation">' +
+      '<div class="portal-user"><div class="avatar" aria-hidden="true">' + esc(custInitials(name, CUSTOMER.email)) + '</div><b>' + esc(name) + '</b><span>' + esc(CUSTOMER.email) + '</span></div>' +
+      '<nav>' +
+        '<a class="active" aria-current="page">📊 Dashboard</a>' +
+        '<a>❤️ Wishlist (' + wish.length + ')</a>' +
+        '<a>📨 My Requests (' + myLeads.length + ')</a>' +
+        '<a>⚙️ Profile &amp; Comms</a>' +
+      '</nav>' +
+    '</aside>' +
+    '<main class="portal-main">' +
+      '<div class="portal-head"><h3>Welcome back, ' + esc(first) + '.</h3><button class="btn btn-ghost btn-sm" onclick="customerSignOut()">Sign Out</button></div>' +
+      '<div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">' +
+        '<div class="kpi"><span>Saved Items</span><b>' + wish.length + '</b><div class="delta">in your wishlist</div></div>' +
+        '<div class="kpi"><span>My Requests</span><b>' + myLeads.length + '</b><div class="delta">' + myLeads.filter(l => !l.handled).length + ' open</div></div>' +
+        '<div class="kpi"><span>Member Since</span><b>' + memberYr + '</b><div class="delta">Outback Arms</div></div>' +
+      '</div>' +
+      '<div class="portal-twocol">' +
+        '<div class="panel"><h4>My Requests</h4>' + reqHtml + '</div>' +
+        '<div>' +
+          '<div class="panel" style="margin-bottom:14px"><h4>My Wishlist</h4>' + wishHtml + '</div>' +
+          '<div class="panel"><h4>Profile &amp; Contact</h4>' +
+            '<div class="field"><label for="pfName">Name</label><input id="pfName" value="' + esc(name) + '"/></div>' +
+            '<div class="field"><label for="pfPhone">Mobile</label><input id="pfPhone" type="tel" value="' + esc(CUSTOMER.phone || '') + '" placeholder="(508) 555-0149"/></div>' +
+            '<button class="btn btn-primary btn-sm" onclick="savePortalProfile()">Save Profile</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="panel" style="margin-top:14px"><h4>FFL on File</h4><div class="ffl-card"><b>OUTBACK ARMS LLC</b><br/><span style="font-size:13px;color:var(--ink-2)">376 Main Street, Plympton, MA 02367</span><br/><span style="font-size:12px;color:var(--mute)">Your default ship-to for firearm transfers.</span></div></div>' +
+    '</main>';
+}
+async function savePortalProfile() {
+  const name = document.getElementById('pfName').value.trim();
+  const phone = document.getElementById('pfPhone').value.trim();
+  CUSTOMER.name = name; CUSTOMER.phone = phone;
+  if (usingSupabase()) {
+    try { const { error } = await sb.from('profiles').upsert({ id: CUSTOMER.id, email: CUSTOMER.email, full_name: name, phone, updated_at: new Date().toISOString() }); if (error) throw error; }
+    catch (e) { toast('Save failed', e.message || 'Could not save.', 'err'); return; }
+  } else { localStorage.setItem('oa_customer', JSON.stringify(CUSTOMER)); }
+  refreshAuthUI();
+  toast('Saved', 'Your profile is updated.', 'ok');
+}
+
 // Skeleton placeholders while live inventory loads (avoids an empty flash)
 function renderGridLoading() {
   const grid = document.getElementById('productGrid');
@@ -3179,7 +3348,8 @@ function renderGridLoading() {
   setInterval(updateOpenStatus, 60000);   // refresh each minute
   renderGridLoading();    // show skeletons until inventory arrives
   await bootData();       // inventory → cache → renderAll()
-  await checkSession();   // restore staff session if present
+  await initAuth();       // restore customer session + render account portal
+  await checkSession();   // restore staff admin session if present (staff-gated)
   hydrateWishRemote();    // merge any server-side wishlist (no-op in local mode)
   trackPageView();        // record a visit for the Command Center telemetry
 })();
