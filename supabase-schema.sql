@@ -103,6 +103,25 @@ create policy "leads updatable by staff"
   to authenticated
   using (true) with check (true);
 
+-- ---------- PAGE VIEWS (Command Center telemetry) ----------
+-- Lightweight built-in visit counter. Anyone may log a view; only staff read.
+create table if not exists public.page_views (
+  id         bigint generated always as identity primary key,
+  path       text default '/',
+  created_at timestamptz not null default now()
+);
+alter table public.page_views enable row level security;
+
+drop policy if exists "page_views insert by anyone" on public.page_views;
+create policy "page_views insert by anyone"
+  on public.page_views for insert to anon, authenticated with check (true);
+
+drop policy if exists "page_views readable by staff" on public.page_views;
+create policy "page_views readable by staff"
+  on public.page_views for select to authenticated using (true);
+
+create index if not exists page_views_created_idx on public.page_views (created_at);
+
 -- ---------- ORDERS ----------
 -- Staff-only order tracking (holds, background checks, pickups, shipments).
 create table if not exists public.orders (

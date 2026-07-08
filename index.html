@@ -463,6 +463,43 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .faq-a{padding:0 var(--s-5) var(--s-5);color:var(--ink-2);font-size:14.5px;line-height:1.65}
 
 /* ---------- Admin / Campaign console ---------- */
+/* ---------- Admin Command Center (MILSPEC) ---------- */
+.cc{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;background:#0a0c0d;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;position:relative}
+.cc::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px);pointer-events:none;z-index:1}
+.cc>*{position:relative;z-index:2}
+.cc-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:linear-gradient(90deg,#14110a,#0a0c0d);border-bottom:1px solid var(--accent);flex-wrap:wrap}
+.cc-brand{font-size:12px;letter-spacing:.16em;color:var(--accent-2);font-weight:700;display:flex;align-items:center;gap:9px}
+.cc-live{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(110,203,138,.5);animation:ccPulse 2s infinite;flex-shrink:0}
+@keyframes ccPulse{0%{box-shadow:0 0 0 0 rgba(110,203,138,.5)}70%{box-shadow:0 0 0 8px rgba(110,203,138,0)}100%{box-shadow:0 0 0 0 rgba(110,203,138,0)}}
+.cc-status{font-size:11px;letter-spacing:.14em;color:var(--ok);font-weight:700}
+.cc-status.warn{color:var(--warn)} .cc-status.crit{color:var(--bad)}
+.cc-clock{font-size:11px;letter-spacing:.08em;color:var(--mute)}
+.cc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);padding:1px}
+.cc-panel{background:#0d0f10;padding:16px 16px 18px}
+.cc-hd{font-size:10px;letter-spacing:.16em;color:var(--mute);border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.cc-hd .cc-dot{color:var(--ok)}
+.cc-big{font-family:'Oswald',sans-serif;font-size:40px;line-height:1}
+.cc-big.accent{color:var(--accent-2)} .cc-big.ok{color:var(--ok)} .cc-big.warn{color:var(--warn)} .cc-big.crit{color:var(--bad)}
+.cc-sub{font-size:11px;color:var(--mute);margin-top:6px;letter-spacing:.04em}
+.cc-mini{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.cc-mini div{font-size:10px;color:var(--mute);letter-spacing:.08em}
+.cc-mini b{color:var(--ink);font-family:'Oswald';font-size:18px;display:block;letter-spacing:0}
+.cc-lower{display:grid;grid-template-columns:1.4fr 1fr;gap:1px;background:var(--line);border-top:1px solid var(--line)}
+.cc-alerts,.cc-actions{background:#0d0f10;padding:16px}
+.cc-alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:6px;margin-bottom:8px;font-size:12.5px;line-height:1.45;border-left:3px solid var(--mute);background:#131518}
+.cc-alert:last-child{margin-bottom:0}
+.cc-alert.crit{border-left-color:var(--bad);background:rgba(235,106,94,.08)}
+.cc-alert.warn{border-left-color:var(--warn);background:rgba(240,196,84,.07)}
+.cc-alert.ok{border-left-color:var(--ok);background:rgba(110,203,138,.07)}
+.cc-alert .cc-tag{font-size:9px;letter-spacing:.1em;padding:2px 6px;border-radius:3px;background:#000;color:var(--mute);white-space:nowrap;margin-top:1px;flex-shrink:0}
+.cc-alert.crit .cc-tag{color:var(--bad)} .cc-alert.warn .cc-tag{color:var(--warn)} .cc-alert.ok .cc-tag{color:var(--ok)}
+.cc-actions button{width:100%;text-align:left;background:#131518;border:1px solid var(--line);color:var(--ink);padding:11px 13px;border-radius:6px;font-family:inherit;font-size:11.5px;letter-spacing:.06em;cursor:pointer;transition:var(--ease);text-transform:uppercase;margin-top:8px}
+.cc-actions button:first-of-type{margin-top:0}
+.cc-actions button:hover{border-color:var(--accent);color:var(--accent-2)}
+@media (max-width:1000px){.cc-grid{grid-template-columns:repeat(2,1fr)} .cc-lower{grid-template-columns:1fr}}
+@media (max-width:560px){.cc-grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.cc-live{animation:none}}
+
 .console{background:#0a0b0c;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
 .console-head{display:flex;justify-content:space-between;align-items:center;padding:var(--s-4) var(--s-5);border-bottom:1px solid var(--line);background:#101213;flex-wrap:wrap;gap:var(--s-3)}
 .console-head h3{font-size:22px;margin:0;display:flex;align-items:center;gap:10px}
@@ -1378,12 +1415,27 @@ footer li a:hover{color:var(--accent-2)}
         </div>
       </div>
 
-      <div class="channel-tabs" style="background:var(--panel);max-width:760px;margin-bottom:18px;flex-wrap:wrap" role="tablist">
+      <div class="channel-tabs" style="background:var(--panel);max-width:920px;margin-bottom:18px;flex-wrap:wrap" role="tablist">
+        <button role="tab" aria-selected="false" onclick="adminTab('command', event)">🎯 Command Center</button>
         <button class="on" role="tab" aria-selected="true" onclick="adminTab('inv', event)">📦 Inventory</button>
         <button role="tab" aria-selected="false" onclick="adminTab('add', event)">➕ Add Product</button>
         <button role="tab" aria-selected="false" onclick="adminTab('leads', event)">📥 Leads <span id="leadsBadge" style="display:none;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">0</span></button>
         <button role="tab" aria-selected="false" onclick="adminTab('orders', event)">🧾 Orders</button>
         <button role="tab" aria-selected="false" onclick="adminTab('settings', event)">⚙️ Site Settings</button>
+      </div>
+
+      <!-- COMMAND CENTER TAB -->
+      <div id="tab-command" class="adminTab" style="display:none">
+        <div class="cc">
+          <div class="cc-topbar">
+            <div class="cc-brand"><span class="cc-live" aria-hidden="true"></span> OUTBACK ARMS · OPERATIONS COMMAND</div>
+            <div class="cc-status" id="ccStatus">◈ SYSTEMS NOMINAL</div>
+            <div class="cc-clock" id="ccClock">—</div>
+          </div>
+          <div id="commandBody">
+            <div style="padding:50px;text-align:center;color:var(--mute);font-family:monospace">◌ ACQUIRING TELEMETRY…</div>
+          </div>
+        </div>
       </div>
 
       <!-- INVENTORY TAB -->
@@ -2418,6 +2470,122 @@ function adminTab(name, ev) {
   if (name === 'settings') renderGotwSelect();
   if (name === 'leads') renderLeads();
   if (name === 'orders') renderOrders();
+  if (name === 'command') renderCommandCenter();
+}
+
+/* =====================================================================
+   ADMIN COMMAND CENTER — live ops metrics from inventory + leads + orders
+   + a lightweight built-in page-view counter (page_views table / local).
+   ===================================================================== */
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return s + 's ago';
+  const m = Math.floor(s / 60); if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+// Record a page view (site-wide via Supabase; per-device fallback via localStorage)
+async function trackPageView() {
+  try {
+    const v = JSON.parse(localStorage.getItem('oa_views') || '[]');
+    v.push(Date.now());
+    localStorage.setItem('oa_views', JSON.stringify(v.slice(-2000)));
+  } catch (e) {}
+  if (usingSupabase()) {
+    try { await sb.from('page_views').insert({ path: location.pathname || '/' }); } catch (e) {}
+  }
+}
+async function getViewStats() {
+  const dayAgo = Date.now() - 864e5, weekAgo = Date.now() - 7 * 864e5;
+  if (usingSupabase()) {
+    try {
+      const q = () => sb.from('page_views').select('*', { count: 'exact', head: true });
+      const [t, d, w] = await Promise.all([
+        q(),
+        q().gte('created_at', new Date(dayAgo).toISOString()),
+        q().gte('created_at', new Date(weekAgo).toISOString()),
+      ]);
+      if (!t.error) return { total: t.count || 0, today: d.count || 0, week: w.count || 0, live: true };
+    } catch (e) {}
+  }
+  let v = []; try { v = JSON.parse(localStorage.getItem('oa_views') || '[]'); } catch (e) {}
+  return { total: v.length, today: v.filter(x => x >= dayAgo).length, week: v.filter(x => x >= weekAgo).length, live: false };
+}
+async function renderCommandCenter() {
+  const body = document.getElementById('commandBody');
+  if (!body) return;
+  const items = loadInventory();
+  const [leads, orders, views] = await Promise.all([fetchLeads(), fetchOrders(), getViewStats()]);
+
+  // --- inventory ---
+  const inStock = items.filter(i => i.stock > 0).length;
+  const low = items.filter(i => i.stock > 0 && i.stock <= 2).length;
+  const out = items.filter(i => i.stock === 0).length;
+  const invValue = items.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.stock) || 0), 0);
+
+  // --- leads ---
+  const weekAgo = Date.now() - 7 * 864e5;
+  const open = leads.filter(l => !l.handled);
+  const leadsWeek = leads.filter(l => new Date(l.created_at).getTime() >= weekAgo).length;
+  const holds = leads.filter(l => l.type === 'hold').length;
+  const subs = leads.filter(l => ['sms_signup', 'email_signup', 'newsletter'].includes(l.type)).length;
+  const oldest = open.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0];
+  const oldestAge = oldest ? timeAgo(new Date(oldest.created_at).getTime()) : null;
+
+  // --- orders ---
+  const openOrders = orders.filter(o => !['Picked up', 'Shipped', 'Cancelled'].includes(o.status)).length;
+  const ordersValue = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+
+  // --- alerts (sales productivity) ---
+  const alerts = [];
+  if (open.length) alerts.push({ sev: 'crit', tag: 'RESPOND', txt: open.length + ' lead' + (open.length > 1 ? 's' : '') + ' awaiting response' + (oldestAge ? ' · oldest ' + oldestAge : '') });
+  if (out) alerts.push({ sev: 'crit', tag: 'STOCK', txt: out + ' product' + (out > 1 ? 's' : '') + ' OUT OF STOCK — reorder' });
+  if (openOrders) alerts.push({ sev: 'warn', tag: 'ORDERS', txt: openOrders + ' order' + (openOrders > 1 ? 's' : '') + ' in progress (hold / background check / pickup)' });
+  if (low) alerts.push({ sev: 'warn', tag: 'STOCK', txt: low + ' product' + (low > 1 ? 's' : '') + ' running low (≤2 units)' });
+  if (!usingSupabase()) alerts.push({ sev: 'warn', tag: 'CONFIG', txt: 'Local demo mode — connect Supabase for live site-wide telemetry' });
+  if (!GA_MEASUREMENT_ID) alerts.push({ sev: 'ok', tag: 'INTEL', txt: 'Add a GA4 ID (Site Settings) for traffic sources, geography & real-time visitors' });
+  if (!alerts.length) alerts.push({ sev: 'ok', tag: 'CLEAR', txt: 'All objectives clear — no action items. Standing by.' });
+
+  // --- top status ---
+  const sev = (out || open.length) ? 'crit' : ((low || openOrders) ? 'warn' : 'ok');
+  const st = document.getElementById('ccStatus');
+  if (st) { st.className = 'cc-status' + (sev === 'ok' ? '' : ' ' + sev); st.textContent = sev === 'crit' ? '◈ ACTION REQUIRED' : (sev === 'warn' ? '◈ ATTENTION ADVISED' : '◈ SYSTEMS NOMINAL'); }
+  const clk = document.getElementById('ccClock');
+  if (clk) clk.textContent = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' ET';
+
+  const panel = (hd, dotClass, big, bigClass, sub, mini) =>
+    '<div class="cc-panel"><div class="cc-hd"><span>' + hd + '</span><span class="cc-dot" style="color:var(--' + dotClass + ')">●</span></div>' +
+    '<div class="cc-big ' + bigClass + '">' + big + '</div><div class="cc-sub">' + sub + '</div>' +
+    (mini ? '<div class="cc-mini">' + mini + '</div>' : '') + '</div>';
+
+  const grid =
+    '<div class="cc-grid">' +
+      panel('SITE TELEMETRY', views.live ? 'ok' : 'warn', views.today.toLocaleString(), 'accent', 'page views today' + (views.live ? '' : ' (this device)'),
+        '<div>7-DAY<b>' + views.week.toLocaleString() + '</b></div><div>ALL-TIME<b>' + views.total.toLocaleString() + '</b></div>') +
+      panel('LEAD INTAKE', open.length ? 'bad' : 'ok', String(open.length), open.length ? 'crit' : 'ok', 'awaiting response',
+        '<div>7-DAY<b>' + leadsWeek + '</b></div><div>HOLDS<b>' + holds + '</b></div><div>SUBSCRIBERS<b>' + subs + '</b></div>') +
+      panel('ORDER OPS', openOrders ? 'warn' : 'ok', String(openOrders), openOrders ? 'warn' : 'ok', 'orders in progress',
+        '<div>TOTAL ORDERS<b>' + orders.length + '</b></div><div>VALUE<b>$' + Math.round(ordersValue).toLocaleString() + '</b></div>') +
+      panel('INVENTORY STATUS', out ? 'bad' : (low ? 'warn' : 'ok'), String(inStock), 'ok', 'SKUs in stock',
+        '<div>LOW<b class="' + (low ? 'cc-big warn' : '') + '" style="color:' + (low ? 'var(--warn)' : 'var(--ink)') + '">' + low + '</b></div><div>OUT<b style="color:' + (out ? 'var(--bad)' : 'var(--ink)') + '">' + out + '</b></div><div>RETAIL VALUE<b>$' + Math.round(invValue).toLocaleString() + '</b></div>') +
+    '</div>';
+
+  const alertHtml = alerts.map(a =>
+    '<div class="cc-alert ' + a.sev + '"><span class="cc-tag">' + a.tag + '</span><span>' + escapeHtml(a.txt) + '</span></div>').join('');
+
+  const lower =
+    '<div class="cc-lower">' +
+      '<div class="cc-alerts"><div class="cc-hd"><span>◄ ALERTS &amp; ACTION ITEMS</span><span>' + alerts.length + '</span></div>' + alertHtml + '</div>' +
+      '<div class="cc-actions"><div class="cc-hd"><span>◄ QUICK DEPLOY</span></div>' +
+        '<button onclick="adminTab(\'leads\')">📥 Review Leads Inbox' + (open.length ? ' (' + open.length + ' new)' : '') + '</button>' +
+        '<button onclick="adminTab(\'orders\')">🧾 Manage Orders</button>' +
+        '<button onclick="adminTab(\'add\')">➕ Add Inventory</button>' +
+        '<button onclick="adminTab(\'inv\')">📦 Edit Inventory</button>' +
+        '<button onclick="renderCommandCenter()">↻ Refresh Telemetry</button>' +
+      '</div>' +
+    '</div>';
+
+  body.innerHTML = grid + lower;
 }
 
 /* =====================================================================
@@ -3013,6 +3181,7 @@ function renderGridLoading() {
   await bootData();       // inventory → cache → renderAll()
   await checkSession();   // restore staff session if present
   hydrateWishRemote();    // merge any server-side wishlist (no-op in local mode)
+  trackPageView();        // record a visit for the Command Center telemetry
 })();
 </script>
 </body>
