@@ -1179,110 +1179,6 @@ footer li a:hover{color:var(--accent-2)}
   </div>
 </section>
 
-<!-- =================== ADMIN CAMPAIGN CONSOLE =================== -->
-<section class="block" aria-labelledby="ccTitle">
-  <div class="container">
-    <div class="section-head">
-      <div>
-        <p class="eyebrow">Back-of-house · Staff View</p>
-        <h2 id="ccTitle">Mass email &amp; SMS — straight from the customer database.</h2>
-        <p>What your team sees when sending a Wacky Wednesday SMS or the weekly Gun of the Week email. Segment, preview, schedule, send.</p>
-      </div>
-    </div>
-
-    <div class="console">
-      <div class="console-head">
-        <h3><span class="dot" aria-hidden="true"></span> Campaign Composer</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span class="status ship">Klaviyo connected</span>
-          <span class="status ship">Twilio SMS connected</span>
-          <button class="btn btn-ghost btn-sm" onclick="toast('Draft saved','Your campaign draft was saved.','ok')">Save Draft</button>
-          <button class="btn btn-primary btn-sm" onclick="toast('Scheduled','Campaign queued for Wed May 28, 9:00 AM ET.','ok')">Schedule Send →</button>
-        </div>
-      </div>
-      <div class="console-body">
-        <div class="console-left">
-          <div class="channel-tabs" role="tablist">
-            <button class="on" role="tab" aria-selected="true">📱 SMS Blast</button>
-            <button role="tab" aria-selected="false">📧 Email Campaign</button>
-            <button role="tab" aria-selected="false">📰 Monthly Newsletter</button>
-          </div>
-          <div class="field"><label for="ccName">Campaign name (internal)</label><input id="ccName" value="Wacky Wednesday — 5/28 — Optics 20% off"/></div>
-          <label style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);display:block;margin-bottom:6px">Audience segment</label>
-          <div class="segment-pick">
-            <span class="tag-pick on" role="checkbox" tabindex="0" aria-checked="true">All SMS subscribers (1,247)</span>
-            <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Bought optics last 90d (218)</span>
-            <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Patriot tier (62)</span>
-            <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">South Shore ZIPs (894)</span>
-          </div>
-          <div class="field" style="margin-top:14px">
-            <label for="ccBody">SMS body (160 char + link)</label>
-            <textarea id="ccBody" rows="4">🎯 OUTBACK WACKY WED: 20% off ALL Vortex & Sig optics today only. In store + online til 6pm. Tap → outbk.co/wed5-28 Reply STOP to opt out.</textarea>
-          </div>
-          <div class="row2">
-            <div class="field"><label for="ccTime">Send time</label><input id="ccTime" value="Wed May 28, 2026 · 9:00 AM ET"/></div>
-            <div class="field"><label for="ccCode">From shortcode</label><input id="ccCode" value="80808 (OUTBACK)" disabled/></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);border-top:1px solid var(--line);padding-top:14px;margin-top:8px">
-            <span>📊 Est. clicks: <b style="color:var(--accent-2)">174–230</b></span>
-            <span>💰 Cost: <b style="color:var(--accent-2)">$12.47</b></span>
-            <span>📈 Last Wacky Wed: <b style="color:var(--ok)">28% CTR · $4,180 rev</b></span>
-          </div>
-        </div>
-        <div class="console-right">
-          <label style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);display:block;margin-bottom:12px">Live preview</label>
-          <div class="preview-phone">
-            <div class="notch" aria-hidden="true"></div>
-            <div class="bubble">
-              <div class="from">Outback Arms · 80808</div>
-              🎯 OUTBACK WACKY WED: 20% off ALL Vortex &amp; Sig optics today only. In store + online til 6pm. Tap → outbk.co/wed5-28 Reply STOP to opt out.
-            </div>
-            <p style="text-align:center;color:#9a9991;font-size:11px;margin-top:140px">160/160 characters · TCPA compliant ✓</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Email preview below console -->
-    <div style="margin-top:30px" class="forms-grid">
-      <div class="form-card">
-        <h3>Weekly Email: "Gun of the Week"</h3>
-        <p class="desc">Auto-sends every Monday at 7am to opted-in subscribers. Pulls product image, copy, and price from the CMS.</p>
-        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-bottom:14px">
-          <span>📬 <b style="color:var(--ink)">3,184</b> subscribers</span>
-          <span>👁️ open rate <b style="color:var(--ok)">42.1%</b></span>
-          <span>🖱️ click rate <b style="color:var(--ok)">8.7%</b></span>
-          <span>💵 rev/send <b style="color:var(--accent-2)">$2,890</b></span>
-        </div>
-        <div class="row2">
-          <div class="field"><label for="subLine">Subject line</label><input id="subLine" value="🎯 This week: Sig Cross 6.5 CM — $250 off"/></div>
-          <div class="field"><label for="preLine">Preheader</label><input id="preLine" value="Limited stock. Hold yours before Wednesday."/></div>
-        </div>
-        <button class="btn btn-ghost btn-block" onclick="toast('A/B test created','Two subject-line variants will split 50/50.','ok')">A/B Test 2 Subject Lines</button>
-      </div>
-
-      <div class="preview-email" aria-label="Email preview">
-        <div class="e-head">From: deals@outbackarms.com · To: subscribers</div>
-        <div class="e-hero">
-          <div style="font-size:11px;letter-spacing:.2em;margin-bottom:6px">★ GUN OF THE WEEK ★</div>
-          <h2>SIG CROSS 6.5 CM</h2>
-          <div style="margin-top:4px;font-size:14px">Now $1,649 <s style="opacity:.7">$1,899</s></div>
-        </div>
-        <div class="e-body">
-          <p style="margin:0 0 10px"><b>Hey {{ first_name }},</b></p>
-          <p style="margin:0 0 12px">A precision bolt-action built for hunters who push past 600 yards. Stainless 18" barrel, sub-MOA out of the box, and we cut $250 off MSRP this week only.</p>
-          <p style="margin:0 0 6px"><b>Caliber:</b> 6.5 Creedmoor · <b>In stock:</b> 2 left</p>
-          <a class="e-cta">Hold This Gun →</a>
-        </div>
-        <div class="e-foot">
-          Outback Arms · 376 Main St, Plympton MA 02367 · 781-585-6615<br/>
-          You're getting this because you opted in. <a>Unsubscribe</a> · <a>Manage preferences</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- =================== NEWSLETTER BAND =================== -->
 <section class="block" id="newsletter" aria-labelledby="nlTitle">
   <div class="container">
@@ -1359,12 +1255,13 @@ footer li a:hover{color:var(--accent-2)}
         </div>
       </div>
 
-      <div class="channel-tabs" style="background:var(--panel);max-width:920px;margin-bottom:18px;flex-wrap:wrap" role="tablist">
+      <div id="adminTabStrip" class="channel-tabs" style="background:var(--panel);max-width:920px;margin-bottom:18px;flex-wrap:wrap" role="tablist">
         <button role="tab" aria-selected="false" onclick="adminTab('command', event)">🎯 Command Center</button>
         <button class="on" role="tab" aria-selected="true" onclick="adminTab('inv', event)">📦 Inventory</button>
         <button role="tab" aria-selected="false" onclick="adminTab('add', event)">➕ Add Product</button>
         <button role="tab" aria-selected="false" onclick="adminTab('leads', event)">📥 Leads <span id="leadsBadge" style="display:none;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">0</span></button>
         <button role="tab" aria-selected="false" onclick="adminTab('orders', event)">🧾 Orders</button>
+        <button role="tab" aria-selected="false" onclick="adminTab('campaigns', event)">📣 Campaigns</button>
         <button role="tab" aria-selected="false" onclick="adminTab('settings', event)">⚙️ Site Settings</button>
       </div>
 
@@ -1378,6 +1275,99 @@ footer li a:hover{color:var(--accent-2)}
           </div>
           <div id="commandBody">
             <div style="padding:50px;text-align:center;color:var(--mute);font-family:monospace">◌ ACQUIRING TELEMETRY…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPAIGNS TAB -->
+      <div id="tab-campaigns" class="adminTab" style="display:none">
+        <div class="form-card" style="padding:0;overflow:hidden;margin-bottom:18px">
+          <div style="padding:16px 22px;border-bottom:1px solid var(--line)">
+            <h3 style="margin:0">Campaigns — Email &amp; SMS</h3>
+            <p class="desc" style="margin:4px 0 0">Compose, segment, preview and schedule blasts to your subscriber list.</p>
+          </div>
+          <div style="padding:13px 22px;background:rgba(239,108,31,.08);font-size:13px;color:var(--ink-2);display:flex;gap:10px;align-items:flex-start">
+            <span style="font-size:16px;line-height:1.3">🔌</span>
+            <span><b style="color:var(--ink)">Preview mode.</b> The composer is fully interactive, but sending isn't wired up yet. To go live, connect <b>Resend</b> (email) and <b>Twilio</b> (SMS) — just ask and I'll set it up. Until then, buttons save a draft only.</span>
+          </div>
+        </div>
+
+        <div class="console">
+          <div class="console-head">
+            <h3><span class="dot" aria-hidden="true"></span> Campaign Composer</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <span style="font-size:12px;font-weight:600;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:5px 12px">Resend · not connected</span>
+              <span style="font-size:12px;font-weight:600;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:5px 12px">Twilio SMS · not connected</span>
+              <button class="btn btn-ghost btn-sm" onclick="toast('Draft saved','Campaign draft stored (preview mode).','ok')">Save Draft</button>
+              <button class="btn btn-primary btn-sm" onclick="toast('Saved as draft','Sending isn&#39;t connected yet — connect Resend/Twilio to schedule for real.','ok')">Schedule Send →</button>
+            </div>
+          </div>
+          <div class="console-body">
+            <div class="console-left">
+              <div class="channel-tabs" role="tablist">
+                <button class="on" role="tab" aria-selected="true">📱 SMS Blast</button>
+                <button role="tab" aria-selected="false">📧 Email Campaign</button>
+                <button role="tab" aria-selected="false">📰 Monthly Newsletter</button>
+              </div>
+              <div class="field"><label for="ccName">Campaign name (internal)</label><input id="ccName" value="Wacky Wednesday — Optics 20% off"/></div>
+              <label style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);display:block;margin-bottom:6px">Audience segment</label>
+              <div class="segment-pick">
+                <span class="tag-pick on" role="checkbox" tabindex="0" aria-checked="true">All SMS subscribers</span>
+                <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Bought optics last 90d</span>
+                <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Patriot tier</span>
+                <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">South Shore ZIPs</span>
+              </div>
+              <div class="field" style="margin-top:14px">
+                <label for="ccBody">SMS body (160 char + link)</label>
+                <textarea id="ccBody" rows="4">🎯 OUTBACK WACKY WED: 20% off ALL Vortex &amp; Sig optics today only. In store + online til 6pm. Reply STOP to opt out.</textarea>
+              </div>
+              <div class="row2">
+                <div class="field"><label for="ccTime">Send time</label><input id="ccTime" value="Wed · 9:00 AM ET"/></div>
+                <div class="field"><label for="ccCode">From shortcode</label><input id="ccCode" value="80808 (OUTBACK)" disabled/></div>
+              </div>
+            </div>
+            <div class="console-right">
+              <label style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);display:block;margin-bottom:12px">Live preview</label>
+              <div class="preview-phone">
+                <div class="notch" aria-hidden="true"></div>
+                <div class="bubble">
+                  <div class="from">Outback Arms · 80808</div>
+                  <span id="ccPreview"></span>
+                </div>
+                <p style="text-align:center;color:#9a9991;font-size:11px;margin-top:140px"><b id="ccCount">0</b>/160 characters · Reply STOP to opt out</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px" class="forms-grid">
+          <div class="form-card">
+            <h3>Weekly Email: “Featured This Week”</h3>
+            <p class="desc">Schedule a weekly email to opted-in subscribers. Pulls product image, copy, and price from your inventory.</p>
+            <div class="row2">
+              <div class="field"><label for="subLine">Subject line</label><input id="subLine" value="🎯 This week: Sig Cross 6.5 CM — $250 off"/></div>
+              <div class="field"><label for="preLine">Preheader</label><input id="preLine" value="Limited stock. Hold yours before Wednesday."/></div>
+            </div>
+            <button class="btn btn-ghost btn-block" onclick="toast('A/B test noted','Two subject-line variants saved to the draft (preview).','ok')">A/B Test 2 Subject Lines</button>
+          </div>
+
+          <div class="preview-email" aria-label="Email preview">
+            <div class="e-head">From: deals@outbackarms.com · To: subscribers</div>
+            <div class="e-hero">
+              <div style="font-size:11px;letter-spacing:.2em;margin-bottom:6px">★ FEATURED THIS WEEK ★</div>
+              <h2>SIG CROSS 6.5 CM</h2>
+              <div style="margin-top:4px;font-size:14px">Now $1,649 <s style="opacity:.7">$1,899</s></div>
+            </div>
+            <div class="e-body">
+              <p style="margin:0 0 10px"><b>Hey {{ first_name }},</b></p>
+              <p style="margin:0 0 12px">A precision bolt-action built for hunters who push past 600 yards. Stainless 18" barrel, sub-MOA out of the box, and we cut $250 off MSRP this week only.</p>
+              <p style="margin:0 0 6px"><b>Caliber:</b> 6.5 Creedmoor · <b>In stock:</b> 2 left</p>
+              <a class="e-cta">Hold This Gun →</a>
+            </div>
+            <div class="e-foot">
+              Outback Arms · 376 Main St, Plympton MA 02367 · 781-585-6615<br/>
+              You're getting this because you opted in. <a>Unsubscribe</a> · <a>Manage preferences</a>
+            </div>
           </div>
         </div>
       </div>
@@ -3047,7 +3037,7 @@ document.querySelectorAll('.tag-pick').forEach(t => {
 
 // campaign console channel tabs (visual only; skip the admin strip which has its own handler)
 document.querySelectorAll('.channel-tabs').forEach(group => {
-  if (group.closest('#adminDash')) return;
+  if (group.id === 'adminTabStrip') return;
   group.querySelectorAll('button').forEach(b => {
     b.addEventListener('click', () => {
       group.querySelectorAll('button').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected', 'false'); });
@@ -3055,6 +3045,22 @@ document.querySelectorAll('.channel-tabs').forEach(group => {
     });
   });
 });
+
+// campaign composer: live SMS preview + character counter
+(function () {
+  var body = document.getElementById('ccBody');
+  var prev = document.getElementById('ccPreview');
+  var cnt  = document.getElementById('ccCount');
+  if (!body || !prev || !cnt) return;
+  function sync() {
+    var v = body.value;
+    prev.textContent = v;
+    cnt.textContent = v.length;
+    cnt.style.color = v.length > 160 ? 'var(--bad)' : 'var(--ok)';
+  }
+  body.addEventListener('input', sync);
+  sync();
+})();
 
 /* =====================================================================
    12. STORE-HOURS "OPEN NOW" INDICATOR  (Step 7)
