@@ -571,6 +571,8 @@ footer li a:hover{color:var(--accent-2)}
 .toast{background:linear-gradient(180deg,#1e2124,#15171a);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r-sm);padding:var(--s-4);box-shadow:var(--sh-3);display:flex;gap:var(--s-3);align-items:flex-start;animation:toastIn .3s cubic-bezier(.2,.7,.3,1);pointer-events:auto}
 .toast.ok{border-left-color:var(--ok)}
 .toast.err{border-left-color:var(--bad)}
+.toast.warn{border-left-color:var(--warn)}
+.toast.warn .t-ico{background:rgba(240,180,60,.18);color:var(--warn)}
 .toast .t-ico{width:24px;height:24px;flex-shrink:0;display:grid;place-items:center;border-radius:50%;font-size:14px;margin-top:1px}
 .toast.ok .t-ico{background:rgba(110,203,138,.18);color:var(--ok)}
 .toast.err .t-ico{background:rgba(235,106,94,.18);color:var(--bad)}
@@ -1288,7 +1290,7 @@ footer li a:hover{color:var(--accent-2)}
           </div>
           <div style="padding:13px 22px;background:rgba(239,108,31,.08);font-size:13px;color:var(--ink-2);display:flex;gap:10px;align-items:flex-start">
             <span style="font-size:16px;line-height:1.3">🔌</span>
-            <span><b style="color:var(--ink)">Preview mode.</b> The composer is fully interactive, but sending isn't wired up yet. To go live, connect <b>Resend</b> (email) and <b>Twilio</b> (SMS) — just ask and I'll set it up. Until then, buttons save a draft only.</span>
+            <span><b style="color:var(--ink)">Email is live; SMS is preview.</b> The <b>Email a campaign</b> box below sends for real through Resend once the <code>send-campaign</code> function is deployed. The SMS composer is still a preview — it needs a Twilio number (A2P registration) before it can send.</span>
           </div>
         </div>
 
@@ -1342,13 +1344,28 @@ footer li a:hover{color:var(--accent-2)}
 
         <div style="margin-top:20px" class="forms-grid">
           <div class="form-card">
-            <h3>Weekly Email: “Featured This Week”</h3>
-            <p class="desc">Schedule a weekly email to opted-in subscribers. Pulls product image, copy, and price from your inventory.</p>
+            <h3>Email a campaign</h3>
+            <p class="desc">Write it, send yourself a test, then send it to everyone who opted in.</p>
             <div class="row2">
-              <div class="field"><label for="subLine">Subject line</label><input id="subLine" value="🎯 This week: Sig Cross 6.5 CM — $250 off"/></div>
-              <div class="field"><label for="preLine">Preheader</label><input id="preLine" value="Limited stock. Hold yours before Wednesday."/></div>
+              <div class="field"><label for="subLine">Subject line</label><input id="subLine" value="This week at Outback Arms"/></div>
+              <div class="field"><label for="preLine">Preheader (inbox preview)</label><input id="preLine" value="New arrivals, deals & range news"/></div>
             </div>
-            <button class="btn btn-ghost btn-block" onclick="toast('A/B test noted','Two subject-line variants saved to the draft (preview).','ok')">A/B Test 2 Subject Lines</button>
+            <div class="field">
+              <label for="emailBody">Email body</label>
+              <textarea id="emailBody" rows="7">Hey there,
+
+We just took in a fresh batch of new & used firearms, optics, and ammo this week — plus a few trade-ins worth grabbing before they're gone.
+
+Swing by the shop (Wed–Sat) or reply to this email and we'll hold anything you like.
+
+See you at the counter,
+The Outback Arms crew</textarea>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" id="btnTestEmail" onclick="sendCampaign(true)">Send test to me</button>
+              <button class="btn btn-primary btn-sm" id="btnSendEmail" onclick="sendCampaign(false)">Send to subscribers →</button>
+            </div>
+            <p class="desc" style="margin-top:10px;font-size:12px">Recipients: everyone who signed up for the newsletter or “Gun of the Week.” Each person gets their own email with an unsubscribe link.</p>
           </div>
 
           <div class="preview-email" aria-label="Email preview">
@@ -3061,6 +3078,50 @@ document.querySelectorAll('.channel-tabs').forEach(group => {
   body.addEventListener('input', sync);
   sync();
 })();
+
+// campaign composer: send an email campaign for real via the send-campaign Edge Function.
+// testOnly=true sends a single copy to the signed-in staff member's own inbox.
+async function sendCampaign(testOnly) {
+  const subject = (document.getElementById('subLine')?.value || '').trim();
+  const preheader = (document.getElementById('preLine')?.value || '').trim();
+  const bodyText = (document.getElementById('emailBody')?.value || '').trim();
+  if (!subject || !bodyText) { toast('Add a subject and body', 'Both are required before you can send.', 'err'); return; }
+  if (!usingSupabase()) { toast('Demo mode', 'Connect Supabase to send real email — nothing was sent.', 'warn'); return; }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { toast('Sign in first', 'Sign in with your staff account to send campaigns.', 'err'); return; }
+  const myEmail = session.user.email;
+
+  let testEmail = '';
+  if (testOnly) {
+    testEmail = myEmail;
+    if (!confirm('Send a test copy to ' + testEmail + '?')) return;
+  } else {
+    if (!confirm('Send this email to ALL newsletter subscribers now? This cannot be undone.')) return;
+  }
+
+  const btns = [document.getElementById('btnTestEmail'), document.getElementById('btnSendEmail')].filter(Boolean);
+  btns.forEach(b => b.disabled = true);
+  toast('Sending…', testOnly ? 'Sending your test email.' : 'Delivering to your subscriber list.', 'ok');
+  try {
+    const { data, error } = await sb.functions.invoke('send-campaign', {
+      body: { subject, preheader, body: bodyText, testEmail }
+    });
+    if (error) throw error;
+    if (data && data.error) throw new Error(data.error);
+    if (data && data.recipients === 0) { toast('No subscribers yet', 'No newsletter sign-ups to send to.', 'warn'); return; }
+    const n = (data && data.sent) || 0, tot = (data && data.recipients) || 0;
+    if (data && data.errors && data.errors.length) {
+      toast('Partly sent', 'Delivered ' + n + '/' + tot + '. Some failed — check the function logs (likely domain not verified).', 'warn');
+    } else {
+      toast(testOnly ? 'Test sent ✓' : 'Campaign sent ✓', 'Delivered to ' + n + ' recipient' + (n === 1 ? '' : 's') + '.', 'ok');
+    }
+  } catch (e) {
+    toast('Send failed', (e && e.message) || 'Could not reach the send-campaign function.', 'err');
+  } finally {
+    btns.forEach(b => b.disabled = false);
+  }
+}
 
 /* =====================================================================
    12. STORE-HOURS "OPEN NOW" INDICATOR  (Step 7)
