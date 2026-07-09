@@ -386,9 +386,30 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .her-tribute{max-width:740px;margin:var(--s-7) auto 0;text-align:center;font-size:16px;line-height:1.72;
   color:var(--ink-2);border-top:1px solid #241d12;padding-top:var(--s-6)}
 .her-tribute b{color:var(--accent-2);font-weight:600}
-/* --- scroll reveal (only when JS is on; reduced-motion handled globally) --- */
-.js .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+/* --- scroll reveal + timeline animation (JS-gated; reduced-motion handled globally) --- */
+.js .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
 .js .reveal.in{opacity:1;transform:none}
+/* Emerson quote reveals line-by-line instead of as one block */
+.her-quote blockquote .ql{display:block}
+.js .her-quote.reveal{opacity:1;transform:none;transition:none}
+.js .her-quote .ql{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.js .her-quote.in .ql{opacity:1;transform:none}
+.js .her-quote.in .ql:nth-child(1){transition-delay:.04s}
+.js .her-quote.in .ql:nth-child(2){transition-delay:.20s}
+.js .her-quote.in .ql:nth-child(3){transition-delay:.36s}
+.js .her-quote.in .ql:nth-child(4){transition-delay:.52s}
+/* Timeline rows: card slides in from its side; node pops with a spring, then breathes */
+.js .tl-row.reveal{opacity:1;transform:none;transition:none}
+.js .tl-card{opacity:0;transition:opacity .6s ease,transform .55s cubic-bezier(.22,.61,.36,1)}
+.js .tl-row.l .tl-card{transform:translateX(-32px)}
+.js .tl-row.r .tl-card{transform:translateX(32px)}
+.js .tl-row.in .tl-card{opacity:1;transform:none}
+.js .tl-node{transform:scale(0);opacity:0;transition:transform .55s cubic-bezier(.34,1.56,.64,1) .1s,opacity .3s ease .1s}
+.js .tl-row.in .tl-node{transform:scale(1);opacity:1;animation:nodePulse 2.8s ease-in-out .7s infinite}
+@keyframes nodePulse{0%,100%{box-shadow:0 0 0 4px rgba(239,108,31,.14),0 0 16px 2px rgba(239,108,31,.42)}50%{box-shadow:0 0 0 5px rgba(239,108,31,.22),0 0 28px 6px rgba(239,108,31,.72)}}
+/* Ember rail that "draws" downward as you scroll through the timeline */
+.tl-fill{position:absolute;left:50%;top:2px;width:2px;height:0;transform:translateX(-50%);z-index:1;border-radius:2px;
+  background:linear-gradient(180deg,var(--accent-hi),var(--accent));box-shadow:0 0 12px 1px rgba(239,108,31,.6);will-change:height}
 
 /* ---------- MA buyer's guide ---------- */
 .ma-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-4)}
@@ -639,7 +660,7 @@ footer li a:hover{color:var(--accent-2)}
   .ma-steps,.pillars{grid-template-columns:repeat(2,1fr)}
   .testi-grid{grid-template-columns:1fr}
   .heritage::before{font-size:180px}
-  .tl::before{left:8px}
+  .tl::before,.tl-fill{left:8px}
   .tl-row,.tl-row.l,.tl-row.r{width:100%;left:0;padding:0 0 var(--s-5) 36px;text-align:left}
   .tl-row.l .tl-node,.tl-row.r .tl-node{left:0;right:auto}
   .menu-toggle{display:block}
@@ -1013,7 +1034,7 @@ footer li a:hover{color:var(--accent-2)}
 
     <figure class="her-quote reveal">
       <span class="qmark" aria-hidden="true">&ldquo;</span>
-      <blockquote>By the rude bridge that arched the flood,<br/>their flag to April's breeze unfurled,<br/>here once the <span class="em">embattled farmers stood,</span><br/>and fired the shot heard round the world.</blockquote>
+      <blockquote><span class="ql">By the rude bridge that arched the flood,</span><span class="ql">their flag to April's breeze unfurled,</span><span class="ql">here once the <span class="em">embattled farmers stood,</span></span><span class="ql">and fired the shot heard round the world.</span></blockquote>
       <figcaption><cite>Ralph Waldo Emerson &middot; &ldquo;Concord Hymn,&rdquo; 1837</cite></figcaption>
     </figure>
 
@@ -3510,6 +3531,32 @@ function renderGridLoading() {
     });
   }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
   els.forEach(function (e) { io.observe(e); });
+})();
+
+/* Ember rail that draws down the heritage timeline as you scroll past it. */
+(function railProgress() {
+  var tl = document.querySelector('.tl');
+  if (!tl) return;
+  var fill = document.createElement('span');
+  fill.className = 'tl-fill';
+  fill.setAttribute('aria-hidden', 'true');
+  tl.appendChild(fill);
+  var ticking = false;
+  function update() {
+    ticking = false;
+    var r = tl.getBoundingClientRect();
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var start = vh * 0.80;                       // begin filling when the top reaches ~80% down
+    var reached = start - r.top;                 // how far the top has climbed past that line
+    var h = Math.max(0, Math.min(r.height, reached));
+    fill.style.height = h + 'px';
+  }
+  function onScroll() {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 })();
 
 (async function boot() {
