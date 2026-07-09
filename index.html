@@ -356,12 +356,39 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .heritage .kicker{font-family:'Oswald';font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:13px;color:var(--accent-2)}
 .heritage h2{margin:var(--s-3) 0 var(--s-2);font-size:38px}
 .heritage .lede-sm{color:var(--ink-2);max-width:660px;font-size:16px;line-height:1.66;margin:0 0 var(--s-6)}
-.her-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-4);position:relative}
-.her-card{background:rgba(28,31,34,.72);border:1px solid #2c2417;border-radius:var(--r-md);padding:var(--s-5) var(--s-4);transition:var(--ease)}
-.her-card:hover{border-color:var(--khaki);transform:translateY(-2px)}
-.her-card .yr{font-family:'Oswald';font-weight:700;font-size:26px;color:var(--accent);letter-spacing:.02em}
-.her-card b{display:block;margin:var(--s-2) 0;font-size:15px}
-.her-card span{font-size:13px;color:var(--mute);line-height:1.55}
+.her-head{max-width:780px}
+/* --- Emerson pull-quote --- */
+.her-quote{position:relative;max-width:720px;margin:var(--s-6) auto var(--s-7);text-align:center;padding:0 var(--s-4)}
+.her-quote .qmark{font-family:'Oswald';font-weight:700;font-size:96px;line-height:.5;color:var(--accent);opacity:.42;display:block;height:46px}
+.her-quote blockquote{font-family:'Oswald';font-weight:500;font-size:clamp(19px,2.6vw,28px);line-height:1.45;color:var(--ink);margin:10px 0 0;letter-spacing:.01em}
+.her-quote blockquote .em{color:var(--accent-2)}
+.her-quote figcaption{margin-top:var(--s-4)}
+.her-quote cite{font-style:normal;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+/* --- vertical timeline (center rail, alternating cards) --- */
+.tl{list-style:none;padding:0;margin:0 auto;max-width:900px;position:relative}
+.tl::before{content:"";position:absolute;left:50%;top:2px;bottom:2px;width:2px;transform:translateX(-50%);
+  background:linear-gradient(180deg,transparent,var(--accent) 6%,#7a2f12 94%,transparent);opacity:.55}
+.tl-row{position:relative;width:50%;box-sizing:border-box;padding-bottom:var(--s-6)}
+.tl-row:last-child{padding-bottom:0}
+.tl-row.l{left:0;padding-right:40px;text-align:right}
+.tl-row.r{left:50%;padding-left:40px}
+.tl-node{position:absolute;top:7px;width:16px;height:16px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 4px rgba(239,108,31,.14),0 0 20px 3px rgba(239,108,31,.55);z-index:2}
+.tl-row.l .tl-node{right:-8px}
+.tl-row.r .tl-node{left:-8px}
+.tl-card{background:rgba(28,31,34,.74);border:1px solid #2c2417;border-radius:var(--r-md);padding:var(--s-4) var(--s-5);transition:var(--ease)}
+.tl-card:hover{border-color:var(--khaki);transform:translateY(-2px);box-shadow:var(--sh-3)}
+.tl-yr{font-family:'Oswald';font-weight:700;font-size:30px;color:var(--accent);line-height:1;letter-spacing:.02em}
+.tl-loc{display:inline-block;margin:9px 0 7px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);border:1px solid #3a2c1a;border-radius:999px;padding:3px 11px}
+.tl-card b{display:block;font-size:16px;margin-bottom:6px;color:var(--ink)}
+.tl-card p{margin:0;font-size:13.5px;color:var(--mute);line-height:1.62}
+/* --- closing tribute --- */
+.her-tribute{max-width:740px;margin:var(--s-7) auto 0;text-align:center;font-size:16px;line-height:1.72;
+  color:var(--ink-2);border-top:1px solid #241d12;padding-top:var(--s-6)}
+.her-tribute b{color:var(--accent-2);font-weight:600}
+/* --- scroll reveal (only when JS is on; reduced-motion handled globally) --- */
+.js .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
 
 /* ---------- MA buyer's guide ---------- */
 .ma-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-4)}
@@ -609,9 +636,12 @@ footer li a:hover{color:var(--accent-2)}
   .hero{padding:var(--s-8) 0}
   .hero h1{font-size:44px}
   .section-head h2,.heritage h2{font-size:30px}
-  .her-grid,.ma-steps,.pillars{grid-template-columns:repeat(2,1fr)}
+  .ma-steps,.pillars{grid-template-columns:repeat(2,1fr)}
   .testi-grid{grid-template-columns:1fr}
   .heritage::before{font-size:180px}
+  .tl::before{left:8px}
+  .tl-row,.tl-row.l,.tl-row.r{width:100%;left:0;padding:0 0 var(--s-5) 36px;text-align:left}
+  .tl-row.l .tl-node,.tl-row.r .tl-node{left:0;right:auto}
   .menu-toggle{display:block}
   .hero-grid,.forms-grid,.console-body,.portal-shell,.f-grid,.newsletter,.portal-twocol,.tradein,.qv-grid{grid-template-columns:1fr}
   .qv-pic{border-right:0;border-bottom:1px solid var(--line)}
@@ -640,6 +670,7 @@ footer li a:hover{color:var(--accent-2)}
 /* tiny inline SVG icon defaults */
 .i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 </style>
+<script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 <a class="skip-link" href="#products">Skip to main content</a>
@@ -974,15 +1005,76 @@ footer li a:hover{color:var(--accent-2)}
 <!-- =================== 1775 HERITAGE BAND =================== -->
 <section class="block heritage" id="heritage" aria-labelledby="herTitle">
   <div class="container">
-    <p class="kicker">Est. 2012 · Rooted in 1775</p>
-    <h2 id="herTitle">The Commonwealth that fired the shot heard 'round the world.</h2>
-    <p class="lede-sm">Massachusetts isn't just where we do business — it's where American firearms heritage began. From the Tea Party's defiance in Boston Harbor to the minutemen on Lexington Green and the armories that equipped a young nation, responsible gun ownership has deep roots here. Outback Arms carries that tradition forward: lawful, careful, and proud of it.</p>
-    <div class="her-grid">
-      <div class="her-card"><div class="yr">1773</div><b>Boston Tea Party</b><span>Defiance in Boston Harbor lights the fuse of the Revolution — the Commonwealth's spirit of self-reliance is born.</span></div>
-      <div class="her-card"><div class="yr">1775</div><b>Lexington &amp; Concord</b><span>Minutemen answer the alarm on April 19. The shot heard 'round the world is fired at the Old North Bridge.</span></div>
-      <div class="her-card"><div class="yr">1794</div><b>Springfield Armory</b><span>The first national armory rises in Springfield, MA — the cradle of American arms-making for nearly two centuries.</span></div>
-      <div class="her-card"><div class="yr">1852</div><b>An Industry is Born</b><span>Smith &amp; Wesson, Savage, Harrington &amp; Richardson — Massachusetts becomes the workshop of American firearms.</span></div>
+    <div class="her-head">
+      <p class="kicker">In honor of those before us · Est. 2012 · Rooted in 1775</p>
+      <h2 id="herTitle">Massachusetts: where firearms and freedom were forged.</h2>
+      <p class="lede-sm">This isn't just where we do business — it's the ground where American liberty was won. From the first musket carried ashore near our own hometown, to the embattled farmers of Lexington and Concord, to the great armories that armed a young republic, the Commonwealth taught the nation that a free people should be a capable one. Outback Arms carries that trust forward — lawful, careful, and proud of it.</p>
     </div>
+
+    <figure class="her-quote reveal">
+      <span class="qmark" aria-hidden="true">&ldquo;</span>
+      <blockquote>By the rude bridge that arched the flood,<br/>their flag to April's breeze unfurled,<br/>here once the <span class="em">embattled farmers stood,</span><br/>and fired the shot heard round the world.</blockquote>
+      <figcaption><cite>Ralph Waldo Emerson &middot; &ldquo;Concord Hymn,&rdquo; 1837</cite></figcaption>
+    </figure>
+
+    <ol class="tl" aria-label="Timeline of Massachusetts firearms and freedom">
+      <li class="tl-row l reveal">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-card">
+          <div class="tl-yr">1620</div>
+          <span class="tl-loc">Plymouth Colony</span>
+          <b>The musket comes ashore</b>
+          <p>The Pilgrims step off the Mayflower carrying matchlock muskets — the first firearms of a new society — a short ride from the fields that would become Plympton, our hometown. Survival and self-reliance are one and the same.</p>
+        </div>
+      </li>
+      <li class="tl-row r reveal">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-card">
+          <div class="tl-yr">1636</div>
+          <span class="tl-loc">Massachusetts Bay</span>
+          <b>Every able citizen a defender</b>
+          <p>The colony organizes its towns into the first standing militia regiments in America — the direct ancestor of today's National Guard. From the very start, freedom is understood as a shared duty, not a spectator sport.</p>
+        </div>
+      </li>
+      <li class="tl-row l reveal">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-card">
+          <div class="tl-yr">1773</div>
+          <span class="tl-loc">Boston Harbor</span>
+          <b>Defiance in the harbor</b>
+          <p>Colonists send 342 chests of tea into the water rather than bow to a distant crown. The Commonwealth's stubborn spirit of self-reliance lights the fuse of a revolution.</p>
+        </div>
+      </li>
+      <li class="tl-row r reveal">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-card">
+          <div class="tl-yr">1775</div>
+          <span class="tl-loc">Lexington &amp; Concord</span>
+          <b>The shot heard round the world</b>
+          <p>On the morning of April 19, minutemen answer the alarm. At Concord's North Bridge, ordinary farmers stand against an empire — and the first shots of American independence ring out across the countryside.</p>
+        </div>
+      </li>
+      <li class="tl-row l reveal">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-card">
+          <div class="tl-yr">1794</div>
+          <span class="tl-loc">Springfield</span>
+          <b>Arming a young republic</b>
+          <p>George Washington's arsenal at Springfield becomes the nation's first national armory. For nearly two centuries it forges American arms and pioneers interchangeable parts — the spark of American manufacturing itself.</p>
+        </div>
+      </li>
+      <li class="tl-row r reveal">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-card">
+          <div class="tl-yr">1852</div>
+          <span class="tl-loc">The Commonwealth</span>
+          <b>The workshop of American arms</b>
+          <p>Smith &amp; Wesson, Savage, and Harrington &amp; Richardson rise across Massachusetts. Yankee ingenuity, industrialized — the Bay State becomes the beating heart of American firearms making.</p>
+        </div>
+      </li>
+    </ol>
+
+    <p class="her-tribute reveal">We stand on the shoulders of embattled farmers, colonial gunsmiths, and armory hands who believed a free people should be a capable one. Every transfer we run and every class we teach carries that legacy forward — <b>lawfully, carefully, and with respect for those who came before.</b></p>
   </div>
 </section>
 
@@ -3407,6 +3499,19 @@ function renderGridLoading() {
 /* ---- BOOT ----
    bootData() hydrates the cache (Supabase or localStorage) and renders.
    Everything downstream stays synchronous. */
+/* Scroll-reveal for the heritage timeline (and any .reveal element). */
+(function initReveal() {
+  var els = document.querySelectorAll('.reveal');
+  if (!els.length) return;
+  if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+  els.forEach(function (e) { io.observe(e); });
+})();
+
 (async function boot() {
   initSupabase();         // detect backend before adjusting the login UI
   adjustAdminLoginUI();   // relabel staff login to email when Supabase is live
