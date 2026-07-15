@@ -67,6 +67,8 @@ Deno.serve(async (req) => {
   const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const RESEND = Deno.env.get("RESEND_API_KEY");
   const FROM = Deno.env.get("CAMPAIGN_FROM") ?? Deno.env.get("ALERT_EMAIL_FROM") ?? "Outback Arms <onboarding@resend.dev>";
+  // Where customer replies go. Reuses ALERT_EMAIL_TO (your inbox) unless overridden.
+  const REPLY_TO = (Deno.env.get("CAMPAIGN_REPLY_TO") || Deno.env.get("ALERT_EMAIL_TO") || "").split(",")[0].trim();
 
   // ---- Auth: caller must be a signed-in STAFF user ----
   const authHeader = req.headers.get("Authorization") ?? "";
@@ -118,7 +120,7 @@ Deno.serve(async (req) => {
   const errors: string[] = [];
   for (let i = 0; i < recipients.length; i += 100) {
     const chunk = recipients.slice(i, i + 100);
-    const batch = chunk.map((to) => ({ from: FROM, to: [to], subject: finalSubject, html }));
+    const batch = chunk.map((to) => ({ from: FROM, to: [to], subject: finalSubject, html, ...(REPLY_TO ? { reply_to: REPLY_TO } : {}) }));
     try {
       const r = await fetch("https://api.resend.com/emails/batch", {
         method: "POST",
