@@ -287,6 +287,20 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 @keyframes oaShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .modal-close{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.4);border:1px solid var(--line);color:var(--ink);font-size:20px;cursor:pointer;z-index:3;display:grid;place-items:center;line-height:1}
 .modal-close:hover{border-color:var(--accent);color:var(--accent-2)}
+/* --- age gate (first-visit 18+ confirmation) --- */
+.age-gate{position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(4,5,6,.8);backdrop-filter:blur(6px)}
+.age-gate.show{display:flex}
+.age-box{max-width:388px;width:100%;background:linear-gradient(180deg,#1c1e20,#111214);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--sh-3);padding:30px 26px;text-align:center;animation:modalIn .22s cubic-bezier(.2,.7,.3,1)}
+.age-badge{width:66px;height:66px;margin:0 auto 16px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#ff8a3d,#9c3f0d);color:#fff;font-family:'Oswald',sans-serif;font-weight:700;font-size:21px;
+  letter-spacing:.02em;box-shadow:0 8px 22px rgba(239,108,31,.35)}
+.age-box h2{font-size:24px;margin:0 0 8px}
+.age-box p{color:var(--ink-2);font-size:14px;line-height:1.6;margin:0 0 22px}
+.age-actions{display:flex;flex-direction:column;gap:10px}
+.age-actions .btn{width:100%}
+.age-fine{margin-top:16px;font-size:11.5px;color:var(--mute);line-height:1.5}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -701,6 +715,51 @@ footer li a:hover{color:var(--accent-2)}
 <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal" id="modalBox"></div>
 </div>
+
+<!-- =================== AGE GATE (first visit) =================== -->
+<div class="age-gate" id="ageGate" role="dialog" aria-modal="true" aria-labelledby="ageTitle" aria-describedby="ageDesc">
+  <div class="age-box" id="ageBox">
+    <div class="age-badge" aria-hidden="true">18+</div>
+    <h2 id="ageTitle">Are you 18 or older?</h2>
+    <p id="ageDesc">Outback Arms sells firearms, ammunition, and related products. You must be at least 18 years old to enter this website.</p>
+    <div class="age-actions">
+      <button class="btn btn-primary" id="ageYes" type="button">Yes, I'm 18 or older</button>
+      <button class="btn btn-ghost" id="ageNo" type="button">No, I'm under 18</button>
+    </div>
+    <p class="age-fine">Massachusetts law requires you to be 21+ to purchase handguns or ammunition. Valid ID and licensing are verified on every sale.</p>
+  </div>
+</div>
+<script>
+(function () {
+  try { if (localStorage.getItem('oa_age_ok') === 'yes') return; } catch (e) {}
+  var gate = document.getElementById('ageGate'), box = document.getElementById('ageBox');
+  if (!gate) return;
+  var html = document.documentElement;
+  gate.classList.add('show');
+  html.style.overflow = 'hidden';                 // block scrolling until answered
+  function enter() {
+    try { localStorage.setItem('oa_age_ok', 'yes'); } catch (e) {}
+    gate.classList.remove('show');
+    html.style.overflow = '';
+  }
+  var yes = document.getElementById('ageYes'), no = document.getElementById('ageNo');
+  if (yes) { yes.addEventListener('click', enter); setTimeout(function () { yes.focus(); }, 60); }
+  if (no) {
+    no.addEventListener('click', function () {
+      box.innerHTML =
+        '<div class="age-badge" aria-hidden="true">!</div>' +
+        '<h2>Come back soon</h2>' +
+        '<p>You must be at least 18 years old to view this site. Please return once you meet the age requirement.</p>' +
+        '<div class="age-actions"><button class="btn btn-ghost" id="ageBack" type="button">Leave site</button></div>';
+      var back = document.getElementById('ageBack');
+      if (back) back.addEventListener('click', function () {
+        try { window.location.href = 'https://www.google.com'; } catch (e) {}
+      });
+    });
+  }
+  gate.addEventListener('keydown', function (e) { if (e.key === 'Escape') e.preventDefault(); });  // must answer
+})();
+</script>
 
 <!-- =================== TOP UTILITY =================== -->
 <div class="utility">
