@@ -315,6 +315,16 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .age-actions{display:flex;flex-direction:column;gap:10px}
 .age-actions .btn{width:100%}
 .age-fine{margin-top:16px;font-size:11.5px;color:var(--mute);line-height:1.5}
+/* --- CSV bulk import preview --- */
+.csv-summary{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:14px}
+.csv-ok{color:var(--ok);font-weight:700}
+.csv-bad{color:var(--bad);font-weight:700}
+.csv-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:12px}
+.csv-tbl th,.csv-tbl td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.csv-tbl th{color:var(--ink-2);text-transform:uppercase;font-size:10.5px;letter-spacing:.06em}
+.csv-errs{background:rgba(235,106,94,.08);border:1px solid rgba(235,106,94,.3);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--ink-2);margin-bottom:12px;max-height:170px;overflow:auto}
+.csv-errs ul{margin:6px 0 0;padding-left:18px}
+.csv-errs li{margin:2px 0}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -1630,6 +1640,19 @@ The Outback Arms crew</textarea>
 
       <!-- ADD/EDIT TAB -->
       <div id="tab-add" class="adminTab" style="display:none">
+        <div class="form-card" style="margin-bottom:18px">
+          <h3>⬆️ Bulk import from spreadsheet (CSV)</h3>
+          <p class="desc">Keep your inventory in a spreadsheet, export it as <b>CSV</b>, and add everything at once. Columns: <b>name, brand, category, condition, price, stock, description, image_url</b> — only <b>name, brand, price, stock</b> are required. <code>image_url</code> is an optional web link to a photo.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="downloadCsvTemplate()">⬇ Download CSV template</button>
+            <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">📄 Choose CSV file
+              <input id="csvFile" type="file" accept=".csv,text/csv" onchange="previewCsv(event)" style="display:none"/>
+            </label>
+            <span id="csvFileName" class="desc" style="margin:0"></span>
+          </div>
+          <div id="csvPreview" style="display:none"></div>
+          <button id="csvImportBtn" class="btn btn-primary" type="button" onclick="runCsvImport()" style="display:none"></button>
+        </div>
         <div class="form-card">
           <h3 id="formTitle">Add New Product</h3>
           <p class="desc">All fields marked * are required. Photo upload accepts JPG/PNG/WebP up to 5 MB — the image is automatically resized to 800px wide for fast page loads.</p>
@@ -3112,6 +3135,148 @@ function resetForm() {
   document.getElementById('formTitle').textContent = 'Add New Product';
   document.getElementById('editBanner').style.display = 'none';
   document.getElementById('saveBtn').textContent = '💾 Save Product';
+}
+
+/* ---------- CSV bulk import ----------
+   Reads a spreadsheet export, maps columns to product fields, previews the
+   result (valid + skipped rows), then batch-inserts to Supabase (staff-gated
+   by RLS) or localStorage in demo mode. */
+let CSV_ROWS = [];
+const CSV_TEMPLATE_COLS = ['name', 'brand', 'category', 'condition', 'price', 'stock', 'description', 'image_url'];
+const CSV_SYN = {
+  name:  ['name', 'product', 'product name', 'title', 'item'],
+  brand: ['brand', 'make', 'manufacturer', 'mfg'],
+  cat:   ['category', 'cat', 'type', 'class'],
+  cond:  ['condition', 'cond'],
+  price: ['price', 'cost', 'msrp', 'price usd', 'retail'],
+  stock: ['stock', 'qty', 'quantity', 'stock quantity', 'in stock', 'count', 'on hand', 'onhand'],
+  desc:  ['description', 'desc', 'details', 'notes', 'summary'],
+  img:   ['image', 'image url', 'img', 'photo', 'photo url', 'picture']
+};
+const CSV_CATS = ['Handguns', 'Rifles', 'Shotguns', 'Optics', 'Ammo', 'Knives', 'Accessories', 'Used', 'Muzzleloaders'];
+function csvNorm(h) { return String(h || '').toLowerCase().replace(/[_\-()]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function csvCanonCat(v) { v = String(v || '').trim(); if (!v) return 'Accessories'; const m = CSV_CATS.find(c => c.toLowerCase() === v.toLowerCase()); return m || v; }
+
+function downloadCsvTemplate() {
+  const rows = [
+    CSV_TEMPLATE_COLS.join(','),
+    '"Glock G19 Gen 5 9mm",Glock,Handguns,New,649,4,"Striker-fired 9mm. 15+1 capacity.",',
+    '"Strike Eagle 1-8x24 FFP",Vortex,Optics,New,549,7,"First focal plane riflescope.",',
+    '"5.56 NATO 55gr — 500rd case",Federal,Ammo,New,249,10,"American Eagle FMJ, brass case.",'
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows], { type: 'text/csv' }));
+  a.download = 'outback-inventory-template.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Minimal RFC-4180-ish CSV parser (handles quoted fields, commas, newlines).
+function parseCsv(text) {
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const rows = []; let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else if (c === '"') { inQ = true; }
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else field += c;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ''));
+}
+
+function csvHideImport() { CSV_ROWS = []; const b = document.getElementById('csvImportBtn'); if (b) b.style.display = 'none'; }
+
+function previewCsv(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  document.getElementById('csvFileName').textContent = file.name;
+  const box = document.getElementById('csvPreview');
+  const reader = new FileReader();
+  reader.onload = () => {
+    box.style.display = 'block';
+    const rows = parseCsv(String(reader.result || ''));
+    if (rows.length < 2) { box.innerHTML = '<p class="csv-bad">That file has a header but no product rows.</p>'; csvHideImport(); return; }
+    const headers = rows[0].map(csvNorm);
+    const col = {};
+    Object.keys(CSV_SYN).forEach(f => { col[f] = headers.findIndex(h => CSV_SYN[f].indexOf(h) >= 0); });
+    const missing = ['name', 'brand', 'price', 'stock'].filter(f => col[f] < 0);
+    if (missing.length) {
+      box.innerHTML = '<p class="csv-bad">Couldn\'t find required column(s): <b>' + escapeHtml(missing.join(', ')) + '</b>.</p>' +
+        '<p class="desc">Your header row needs at least <b>name, brand, price, stock</b>. Use the template above for the exact format.</p>';
+      csvHideImport(); return;
+    }
+    const valid = [], errs = [];
+    for (let r = 1; r < rows.length; r++) {
+      const get = f => col[f] >= 0 ? String(rows[r][col[f]] == null ? '' : rows[r][col[f]]).trim() : '';
+      const name = get('name'), brand = get('brand');
+      const price = parseFloat(get('price').replace(/[$,]/g, ''));
+      const stock = parseInt(get('stock').replace(/[,]/g, ''), 10);
+      const rowErr = [];
+      if (!name) rowErr.push('missing name');
+      if (!brand) rowErr.push('missing brand');
+      if (isNaN(price) || price < 0) rowErr.push('bad price');
+      if (isNaN(stock) || stock < 0) rowErr.push('bad stock');
+      if (rowErr.length) { errs.push('Row ' + (r + 1) + ': ' + rowErr.join(', ')); continue; }
+      valid.push({ name, brand, cat: csvCanonCat(get('cat')), cond: get('cond') || 'New', price, stock, desc: get('desc'), img: get('img') });
+    }
+    CSV_ROWS = valid;
+    let html = '<div class="csv-summary"><span class="csv-ok">✓ ' + valid.length + ' product' + (valid.length === 1 ? '' : 's') + ' ready to import</span>' +
+      (errs.length ? '<span class="csv-bad">⚠ ' + errs.length + ' row' + (errs.length === 1 ? '' : 's') + ' skipped</span>' : '') + '</div>';
+    if (valid.length) {
+      html += '<table class="csv-tbl"><thead><tr><th>Name</th><th>Brand</th><th>Category</th><th>Cond</th><th>Price</th><th>Stock</th></tr></thead><tbody>';
+      valid.slice(0, 6).forEach(p => {
+        html += '<tr><td>' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.brand) + '</td><td>' + escapeHtml(p.cat) + '</td><td>' + escapeHtml(p.cond) + '</td><td>$' + p.price + '</td><td>' + p.stock + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      if (valid.length > 6) html += '<p class="desc" style="margin:-4px 0 12px">…and ' + (valid.length - 6) + ' more.</p>';
+    }
+    if (errs.length) html += '<div class="csv-errs"><b>Skipped rows (fix and re-upload):</b><ul>' +
+      errs.slice(0, 10).map(x => '<li>' + escapeHtml(x) + '</li>').join('') +
+      (errs.length > 10 ? '<li>…and ' + (errs.length - 10) + ' more</li>' : '') + '</ul></div>';
+    box.innerHTML = html;
+    const btn = document.getElementById('csvImportBtn');
+    if (valid.length) { btn.style.display = 'inline-flex'; btn.textContent = 'Import ' + valid.length + ' product' + (valid.length === 1 ? '' : 's') + ' →'; }
+    else csvHideImport();
+  };
+  reader.readAsText(file);
+}
+
+async function runCsvImport() {
+  if (!CSV_ROWS.length) return;
+  const btn = document.getElementById('csvImportBtn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Importing…';
+  const rows = CSV_ROWS.slice();
+  let added = 0;
+  try {
+    if (usingSupabase()) {
+      for (let i = 0; i < rows.length; i += 500) {
+        const { data, error } = await sb.from('products').insert(rows.slice(i, i + 500)).select();
+        if (error) throw error;
+        if (data) { INVENTORY.push.apply(INVENTORY, data); added += data.length; }
+      }
+    } else {
+      let nextId = INVENTORY.length ? Math.max.apply(null, INVENTORY.map(x => x.id || 0)) + 1 : 1;
+      rows.forEach(p => { INVENTORY.push(Object.assign({ id: nextId++ }, p)); added++; });
+      persistLocal();
+    }
+    renderAll();
+    toast('Import complete ✓', added + ' product' + (added === 1 ? '' : 's') + ' added to the storefront.', 'ok');
+    document.getElementById('csvPreview').style.display = 'none';
+    document.getElementById('csvPreview').innerHTML = '';
+    document.getElementById('csvFile').value = '';
+    document.getElementById('csvFileName').textContent = '';
+    csvHideImport();
+  } catch (err) {
+    toast('Import failed', (err && err.message) || 'Could not save the products.', 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
 }
 
 /* ---------- photo upload ----------
