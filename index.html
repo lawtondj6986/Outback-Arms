@@ -376,6 +376,13 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .testi .who .av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7a2f12);display:grid;place-items:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0}
 .testi .who b{display:block;font-size:14px;font-family:'Inter'}
 .testi .who span{color:var(--mute);font-size:12px}
+.rev-cta{margin-top:var(--s-5);background:linear-gradient(135deg,#1a1d20,#111214);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s-5) var(--s-6);display:flex;align-items:center;justify-content:space-between;gap:var(--s-5);flex-wrap:wrap}
+.rev-cta .rc-l{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rev-cta .rc-stars{color:var(--accent-2);font-size:26px;letter-spacing:3px;line-height:1}
+.rev-cta .rc-txt b{color:var(--ink);font-size:17px;display:block;line-height:1.2}
+.rev-cta .rc-txt span{color:var(--mute);font-size:13px}
+.rev-cta .rc-btns{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:700px){.rev-cta{justify-content:center;text-align:center}.rev-cta .rc-l,.rev-cta .rc-btns{justify-content:center}}
 
 /* ---------- Gallery / Recent Customer Builds ---------- */
 .gallery{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s-3)}
@@ -1111,6 +1118,16 @@ footer li a:hover{color:var(--accent-2)}
         <figcaption class="who"><span class="av" aria-hidden="true">RG</span><div><b>Rick G.</b><span>Collector · Plympton</span></div></figcaption>
       </figure>
     </div>
+    <div class="rev-cta">
+      <div class="rc-l">
+        <span class="rc-stars" aria-hidden="true">★★★★★</span>
+        <div class="rc-txt"><b>4.9 out of 5 on Google</b><span>Rated by the South Shore shooting community</span></div>
+      </div>
+      <div class="rc-btns">
+        <a class="btn btn-primary" href="https://www.google.com/maps/search/?api=1&amp;query=Outback+Arms+Plympton+MA" target="_blank" rel="noopener">Read our Google reviews →</a>
+        <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&amp;query=Outback+Arms+Plympton+MA" target="_blank" rel="noopener">Leave a review</a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1335,7 +1352,7 @@ footer li a:hover{color:var(--accent-2)}
             </div>
           </div>
           <label class="chk"><input type="checkbox" required id="inAge"/> <span>I confirm I am 21+ and legally permitted to own firearms in my state.</span></label>
-          <label class="chk"><input type="checkbox" checked/> <span>OK to text me about my request and occasional Outback Arms deals (≤4 msgs/mo). Reply STOP to opt out. <a href="#">Terms</a> · <a href="#">Privacy</a>.</span></label>
+          <label class="chk"><input type="checkbox" checked/> <span>OK to text me about my request and occasional Outback Arms deals (≤4 msgs/mo). Reply STOP to opt out. <a href="#">Terms</a> · <a href="#" onclick="openPrivacy();return false">Privacy</a>.</span></label>
           <button class="btn btn-primary btn-block btn-lg" type="submit">Send My Request</button>
           <p class="fine">By submitting you consent to Outback Arms LLC contacting you via email and (if opted in) SMS. Msg &amp; data rates may apply. We never share your info.</p>
         </form>
@@ -1419,7 +1436,7 @@ footer li a:hover{color:var(--accent-2)}
       <form class="news-form" id="newsForm" novalidate>
         <input type="email" name="email" required placeholder="you@email.com" aria-label="Email address"/>
         <button type="submit" class="btn btn-primary">Subscribe</button>
-        <label class="chk" style="color:#f4e7d7;width:100%"><input type="checkbox" required/> <span>21+ and consent to receive emails. <a href="#" style="color:#fff;text-decoration:underline">Privacy</a>.</span></label>
+        <label class="chk" style="color:#f4e7d7;width:100%"><input type="checkbox" required/> <span>21+ and consent to receive emails. <a href="#" onclick="openPrivacy();return false" style="color:#fff;text-decoration:underline">Privacy</a>.</span></label>
       </form>
     </div>
   </div>
@@ -1728,6 +1745,7 @@ The Outback Arms crew</textarea>
                 <option value="sms_signup">SMS signups</option>
                 <option value="email_signup">Email signups</option>
                 <option value="newsletter">Newsletter</option>
+                <option value="restock">Back-in-stock alerts</option>
               </select>
               <button class="btn btn-ghost btn-sm" onclick="renderLeads()">↻ Refresh</button>
             </div>
@@ -1870,14 +1888,14 @@ The Outback Arms crew</textarea>
     </div>
     <div class="f-bottom">
       <span>© 2026 Outback Arms LLC · FFL Dealer · All sales subject to state &amp; federal law.</span>
-      <span><a href="#">Privacy</a> · <a href="#">Terms</a> · <a href="#">SMS Terms</a> · <a href="#">Returns</a></span>
+      <span><a href="#" onclick="openPrivacy();return false">Privacy</a> · <a href="#">Terms</a> · <a href="#">SMS Terms</a> · <a href="#">Returns</a></span>
     </div>
   </div>
 </footer>
 
 <!-- =================== COOKIE CONSENT (only appears if analytics is on) =================== -->
 <div class="consent" id="consentBanner" role="region" aria-label="Cookie consent">
-  <p>We use privacy-friendly analytics to see what's useful on the site — no ads, no selling your data. Okay to enable? <a href="#">Privacy</a></p>
+  <p>We use privacy-friendly analytics to see what's useful on the site — no ads, no selling your data. Okay to enable? <a href="#" onclick="openPrivacy();return false">Privacy</a></p>
   <div class="c-row">
     <button class="btn btn-primary btn-sm" onclick="grantConsent()">Accept</button>
     <button class="btn btn-ghost btn-sm" onclick="denyConsent()">Decline</button>
@@ -2325,7 +2343,7 @@ function renderStorefront() {
         '<div class="meta"><span class="price">$' + Number(p.price).toLocaleString() + '</span><span class="stock ' + stockClass + '">' + stockText + '</span></div>' +
       '</div>' +
       '<div class="card-actions">' +
-        '<button class="btn btn-primary" onclick="openHold(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')" ' + (p.stock === 0 ? 'title="Backorder — we\'ll notify you"' : '') + '>' + (p.stock === 0 ? 'Notify Me' : 'Hold This Gun') + '</button>' +
+        '<button class="btn btn-primary" onclick="' + (p.stock === 0 ? 'openRestock' : 'openHold') + '(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')" ' + (p.stock === 0 ? 'title="Out of stock — get a back-in-stock alert"' : '') + '>' + (p.stock === 0 ? 'Notify Me When Back' : 'Hold This Gun') + '</button>' +
       '</div>' +
     '</article>';
   }).join('');
@@ -2353,7 +2371,7 @@ function openQuickView(id) {
         '<p class="qv-desc">' + escapeHtml(p.desc || 'Verified in-store by Outback Arms staff. Contact us for full specs and current availability.') + '</p>' +
         '<div class="qv-specs"><span>Category</span><b>' + escapeHtml(p.cat) + '</b><span>Condition</span><b>' + escapeHtml(p.cond) + '</b><span>Availability</span><b>' + stockLine + '</b><span>Compliance</span><b>MA-compliant ✓</b></div>' +
         '<div class="qv-actions">' +
-          '<button class="btn btn-primary" onclick="closeModal();openHold(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')">' + (p.stock === 0 ? 'Notify Me' : 'Hold This Gun') + '</button>' +
+          '<button class="btn btn-primary" onclick="closeModal();' + (p.stock === 0 ? 'openRestock' : 'openHold') + '(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')">' + (p.stock === 0 ? 'Notify Me When Back' : 'Hold This Gun') + '</button>' +
           '<button class="btn btn-ghost" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)">' + (faved ? '♥ Saved' : '♡ Wishlist') + '</button>' +
         '</div>' +
         '<p class="qv-note">Holds are free and last up to 48 hours. Final sale requires a valid MA license and an in-store background check.</p>' +
@@ -2411,6 +2429,76 @@ function openHold(name) {
       'We\'ve reserved <b>' + escapeHtml(name) + '</b> for 48 hours and sent a confirmation text. Bring your MA license for the background check.',
       '<a href="https://maps.google.com/?q=376+Main+Street,+Plympton,+MA+02367" target="_blank" rel="noopener" class="btn btn-primary">Get Directions</a>');
   });
+}
+
+// Back-in-stock alert: capture an email for a specific out-of-stock item.
+function openRestock(name) {
+  track('restock_start', { item_name: name });
+  openModal(
+    '<button class="modal-close" aria-label="Close" onclick="closeModal()">&times;</button>' +
+    '<div style="padding:var(--s-6)">' +
+      '<p class="eyebrow" style="margin-bottom:6px">Back-in-stock alert</p>' +
+      '<h3 id="modalTitle" style="font-family:Oswald;font-size:26px;margin:0 0 6px">Notify me: ' + escapeHtml(name) + '</h3>' +
+      '<p style="color:var(--mute);font-size:14px;margin:0 0 20px">This one\'s out of stock right now. Leave your email and we\'ll reach out the moment it\'s back on the shelf — just for this item, no spam.</p>' +
+      '<form id="restockForm" novalidate>' +
+        '<div class="field"><label for="rName">Your name</label><input id="rName" required placeholder="Dan Jameson"/><span class="err-msg">Please enter your name.</span></div>' +
+        '<div class="field"><label for="rEmail">Email</label><input id="rEmail" type="email" required placeholder="you@email.com"/><span class="err-msg">Enter a valid email.</span></div>' +
+        '<div class="field"><label for="rPhone">Mobile <span style="color:var(--mute);font-weight:400">(optional — for a faster text)</span></label><input id="rPhone" type="tel" placeholder="(508) 555-0149"/></div>' +
+        '<label class="chk"><input type="checkbox" required id="rOk"/> <span>OK to contact me about this item\'s availability.</span></label>' +
+        '<button class="btn btn-primary btn-block btn-lg" type="submit">Notify me when it\'s back →</button>' +
+      '</form>' +
+    '</div>'
+  );
+  document.getElementById('modalOverlay').setAttribute('aria-labelledby', 'modalTitle');
+  const rf = document.getElementById('restockForm');
+  armForm(rf);
+  rf.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (isSpam(rf)) return;
+    if (!validateForm(rf)) return;
+    const ok = await submitLead('restock', { item: name, ...collectForm(rf) });
+    if (!ok) { toast('Couldn\'t reach us', 'Please call 781-585-6615 and we\'ll add you to the list.', 'err'); return; }
+    successModal('You\'re on the list ✓', 'We\'ll reach out the moment <b>' + escapeHtml(name) + '</b> is back in stock. Thanks for your patience!');
+  });
+}
+
+// Privacy Policy modal (linked from the footer, forms, and consent banner).
+function openPrivacy() {
+  const h = '<h4 style="font-family:Oswald;font-size:16px;margin:20px 0 6px;color:var(--ink)">';
+  const p = '<p style="color:var(--ink-2);font-size:14px;line-height:1.66;margin:0 0 10px">';
+  openModal(
+    '<button class="modal-close" aria-label="Close" onclick="closeModal()">&times;</button>' +
+    '<div style="padding:var(--s-6)">' +
+      '<p class="eyebrow" style="margin-bottom:6px">Legal</p>' +
+      '<h3 id="modalTitle" style="font-family:Oswald;font-size:26px;margin:0 0 4px">Privacy Policy</h3>' +
+      '<p style="color:var(--mute);font-size:13px;margin:0 0 16px">Last updated July 2026 · Outback Arms LLC, 376 Main Street, Plympton, MA 02367</p>' +
+      p + 'This policy explains what information Outback Arms LLC (&ldquo;we,&rdquo; &ldquo;us&rdquo;) collects when you use outbackarms.com, how we use it, and the choices you have. We keep this plain-English on purpose. Questions? Call <a href="tel:+17815856615" style="color:var(--accent-2)">781-585-6615</a>.</p>' +
+      h + 'Information we collect</h4>' +
+      p + '<b>Information you give us.</b> When you submit a form — a gun hold, an inquiry, a class signup, a back-in-stock alert, or an email/text opt-in — we collect the details you provide, such as your name, phone number, email, and any notes about what you\'re looking for.</p>' +
+      p + '<b>Information collected automatically.</b> Like most websites, our host records basic technical data (such as IP address and browser type) for security and reliability. If you accept analytics in our cookie banner, we collect aggregate, non-advertising visit data to understand what\'s useful on the site. We honor your browser\'s &ldquo;Do Not Track&rdquo; setting.</p>' +
+      p + '<b>Stored in your browser.</b> Your wishlist and preferences are saved locally in your own browser (local storage), not on our servers unless you create an account.</p>' +
+      h + 'How we use your information</h4>' +
+      p + 'To respond to your requests, set aside holds, arrange transfers and pickups, run the classes you sign up for, send you the alerts and updates you asked for, keep the site secure, and meet our legal obligations as a licensed firearms dealer. <b>We do not sell your personal information.</b></p>' +
+      h + 'Email &amp; text messages</h4>' +
+      p + 'We only email or text you with your consent. You can opt out anytime — reply <b>STOP</b> to any text, or use the unsubscribe link in any email. Message and data rates may apply. Consent to marketing messages is never a condition of purchase.</p>' +
+      h + 'Service providers</h4>' +
+      p + 'We use a small set of trusted providers to operate the site — for hosting, our database, and email delivery — plus optional privacy-friendly analytics. They process data only to provide their service to us, and are not permitted to sell it.</p>' +
+      h + 'Legal &amp; safety</h4>' +
+      p + 'Firearm sales are subject to Massachusetts and federal law, including identity verification, licensing, and background checks conducted in-store. We may disclose information when required to comply with those laws, respond to lawful requests from law enforcement, or protect the rights and safety of our customers, staff, and community.</p>' +
+      h + 'Data retention &amp; security</h4>' +
+      p + 'We keep information only as long as needed for the purpose it was collected or as required by law, and we use reasonable safeguards to protect it. No method of transmission or storage is 100% secure, so we can\'t guarantee absolute security.</p>' +
+      h + 'Adults only</h4>' +
+      p + 'This site is intended for adults. We do not knowingly collect information from anyone under 18, and firearm and ammunition purchases carry their own age and licensing requirements under MA law.</p>' +
+      h + 'Your choices</h4>' +
+      p + 'You can ask us to access, correct, or delete the personal information we hold about you — just call or email and we\'ll help. Note that some records tied to a firearm transaction must be retained to comply with the law.</p>' +
+      h + 'Changes to this policy</h4>' +
+      p + 'We may update this policy from time to time; the current version will always be posted here with its &ldquo;last updated&rdquo; date.</p>' +
+      h + 'Contact us</h4>' +
+      p + 'Outback Arms LLC · 376 Main Street, Plympton, MA 02367 · <a href="tel:+17815856615" style="color:var(--accent-2)">781-585-6615</a></p>' +
+      '<div style="margin-top:20px;text-align:right"><button class="btn btn-ghost" onclick="closeModal()">Close</button></div>' +
+    '</div>'
+  );
+  document.getElementById('modalOverlay').setAttribute('aria-labelledby', 'modalTitle');
 }
 function openClass() {
   openModal(
@@ -2843,7 +2931,7 @@ function leadSummary(type, p) {
   if (type === 'email_signup' || type === 'newsletter') return 'Email opt-in';
   return type;
 }
-const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News' };
+const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News', restock: 'Restock' };
 function fmtLeadDate(iso) {
   try { return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
   catch (e) { return iso || ''; }
@@ -3676,7 +3764,7 @@ function openAuth(mode) {
         (signup ? '<div class="field"><label for="auName">Full name</label><input id="auName" required placeholder="Dan Jameson"/><span class="err-msg">Enter your name.</span></div>' : '') +
         '<div class="field"><label for="auEmail">Email</label><input id="auEmail" type="email" required placeholder="you@email.com" autocomplete="email"/><span class="err-msg">Enter a valid email.</span></div>' +
         '<div class="field"><label for="auPass">Password</label><input id="auPass" type="password" required placeholder="••••••••" autocomplete="' + (signup ? 'new-password' : 'current-password') + '"/><span class="err-msg">At least 6 characters.</span></div>' +
-        (signup ? '<label class="chk"><input type="checkbox" required/> <span>I am 21+ and agree to the <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a>.</span></label>' : '') +
+        (signup ? '<label class="chk"><input type="checkbox" required/> <span>I am 21+ and agree to the <a href="#">Terms</a> &amp; <a href="#" onclick="openPrivacy();return false">Privacy Policy</a>.</span></label>' : '') +
         '<div id="authError" style="color:var(--bad);font-size:13px;margin:6px 0;display:none" role="alert"></div>' +
         '<button class="btn btn-primary btn-block btn-lg" type="submit">' + (signup ? 'Create Account' : 'Sign In') + '</button>' +
       '</form>' +
