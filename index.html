@@ -325,6 +325,8 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .csv-errs{background:rgba(235,106,94,.08);border:1px solid rgba(235,106,94,.3);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--ink-2);margin-bottom:12px;max-height:170px;overflow:auto}
 .csv-errs ul{margin:6px 0 0;padding-left:18px}
 .csv-errs li{margin:2px 0}
+.csv-new{color:var(--accent-2);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.csv-upd{color:#6ec1ff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -1650,6 +1652,10 @@ The Outback Arms crew</textarea>
             </label>
             <span id="csvFileName" class="desc" style="margin:0"></span>
           </div>
+          <label style="display:inline-flex;align-items:flex-start;gap:9px;font-size:13.5px;color:var(--ink-2);cursor:pointer;margin:0 0 14px">
+            <input type="checkbox" id="csvUpdateMode" onchange="csvReprocess()" style="margin-top:2px"/>
+            <span>Update items that already exist <span class="fine">— matched by name + brand (or an <code>id</code> column). Otherwise every row is added as new.</span></span>
+          </label>
           <div id="csvPreview" style="display:none"></div>
           <button id="csvImportBtn" class="btn btn-primary" type="button" onclick="runCsvImport()" style="display:none"></button>
         </div>
@@ -3210,6 +3216,10 @@ function previewCsv(e) {
         '<p class="desc">Your header row needs at least <b>name, brand, price, stock</b>. Use the template above for the exact format.</p>';
       csvHideImport(); return;
     }
+    const idCol = headers.findIndex(h => ['id', 'product id', 'productid', 'item id'].indexOf(h) >= 0);
+    const updateMode = !!(document.getElementById('csvUpdateMode') && document.getElementById('csvUpdateMode').checked);
+    const invNow = loadInventory(); const csvById = {}, csvByKey = {};
+    invNow.forEach(it => { if (it.id != null) csvById[it.id] = it; csvByKey[String(it.name || '').toLowerCase().trim() + '|' + String(it.brand || '').toLowerCase().trim()] = it; });
     const valid = [], errs = [];
     for (let r = 1; r < rows.length; r++) {
       const get = f => col[f] >= 0 ? String(rows[r][col[f]] == null ? '' : rows[r][col[f]]).trim() : '';
@@ -3222,15 +3232,24 @@ function previewCsv(e) {
       if (isNaN(price) || price < 0) rowErr.push('bad price');
       if (isNaN(stock) || stock < 0) rowErr.push('bad stock');
       if (rowErr.length) { errs.push('Row ' + (r + 1) + ': ' + rowErr.join(', ')); continue; }
-      valid.push({ name, brand, cat: csvCanonCat(get('cat')), cond: get('cond') || 'New', price, stock, desc: get('desc'), img: get('img') });
+      let matchId = null;
+      if (updateMode) {
+        const idv = idCol >= 0 ? parseInt(String(rows[r][idCol] || '').trim(), 10) : NaN;
+        if (!isNaN(idv) && csvById[idv]) matchId = idv;
+        else { const hit = csvByKey[name.toLowerCase() + '|' + brand.toLowerCase()]; if (hit) matchId = hit.id; }
+      }
+      valid.push({ name, brand, cat: csvCanonCat(get('cat')), cond: get('cond') || 'New', price, stock, desc: get('desc'), img: get('img'), __matchId: matchId });
     }
     CSV_ROWS = valid;
-    let html = '<div class="csv-summary"><span class="csv-ok">✓ ' + valid.length + ' product' + (valid.length === 1 ? '' : 's') + ' ready to import</span>' +
+    const updCount = valid.filter(v => v.__matchId != null).length;
+    const newCount = valid.length - updCount;
+    let html = '<div class="csv-summary"><span class="csv-ok">✓ ' + newCount + ' new' + (updateMode ? ' · ' + updCount + ' update' + (updCount === 1 ? '' : 's') : '') + ' ready</span>' +
       (errs.length ? '<span class="csv-bad">⚠ ' + errs.length + ' row' + (errs.length === 1 ? '' : 's') + ' skipped</span>' : '') + '</div>';
     if (valid.length) {
-      html += '<table class="csv-tbl"><thead><tr><th>Name</th><th>Brand</th><th>Category</th><th>Cond</th><th>Price</th><th>Stock</th></tr></thead><tbody>';
+      html += '<table class="csv-tbl"><thead><tr><th>Name</th><th>Brand</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead><tbody>';
       valid.slice(0, 6).forEach(p => {
-        html += '<tr><td>' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.brand) + '</td><td>' + escapeHtml(p.cat) + '</td><td>' + escapeHtml(p.cond) + '</td><td>$' + p.price + '</td><td>' + p.stock + '</td></tr>';
+        const badge = p.__matchId != null ? '<span class="csv-upd">Update</span>' : '<span class="csv-new">New</span>';
+        html += '<tr><td>' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.brand) + '</td><td>' + escapeHtml(p.cat) + '</td><td>$' + p.price + '</td><td>' + p.stock + '</td><td>' + badge + '</td></tr>';
       });
       html += '</tbody></table>';
       if (valid.length > 6) html += '<p class="desc" style="margin:-4px 0 12px">…and ' + (valid.length - 6) + ' more.</p>';
@@ -3240,37 +3259,55 @@ function previewCsv(e) {
       (errs.length > 10 ? '<li>…and ' + (errs.length - 10) + ' more</li>' : '') + '</ul></div>';
     box.innerHTML = html;
     const btn = document.getElementById('csvImportBtn');
-    if (valid.length) { btn.style.display = 'inline-flex'; btn.textContent = 'Import ' + valid.length + ' product' + (valid.length === 1 ? '' : 's') + ' →'; }
-    else csvHideImport();
+    if (valid.length) {
+      btn.style.display = 'inline-flex';
+      btn.textContent = (updateMode && updCount) ? 'Import ' + newCount + ' new · update ' + updCount + ' →' : 'Import ' + valid.length + ' product' + (valid.length === 1 ? '' : 's') + ' →';
+    } else csvHideImport();
   };
   reader.readAsText(file);
 }
+
+// Re-run the preview (e.g. when the "update existing" toggle changes).
+function csvReprocess() { const f = document.getElementById('csvFile'); if (f && f.files && f.files[0]) previewCsv({ target: f }); }
 
 async function runCsvImport() {
   if (!CSV_ROWS.length) return;
   const btn = document.getElementById('csvImportBtn');
   const label = btn.textContent;
   btn.disabled = true; btn.textContent = 'Importing…';
-  const rows = CSV_ROWS.slice();
-  let added = 0;
+  // Rows carrying an id update that product; rows without one insert as new.
+  const payload = CSV_ROWS.map(v => {
+    const o = { name: v.name, brand: v.brand, cat: v.cat, cond: v.cond, price: v.price, stock: v.stock, desc: v.desc, img: v.img };
+    if (v.__matchId != null) o.id = v.__matchId;
+    return o;
+  });
+  const updated = payload.filter(o => o.id != null).length;
+  const addedN = payload.length - updated;
   try {
     if (usingSupabase()) {
-      for (let i = 0; i < rows.length; i += 500) {
-        const { data, error } = await sb.from('products').insert(rows.slice(i, i + 500)).select();
+      for (let i = 0; i < payload.length; i += 500) {
+        const { data, error } = await sb.from('products').upsert(payload.slice(i, i + 500)).select();
         if (error) throw error;
-        if (data) { INVENTORY.push.apply(INVENTORY, data); added += data.length; }
+        (data || []).forEach(row => { const idx = INVENTORY.findIndex(x => x.id === row.id); if (idx >= 0) INVENTORY[idx] = row; else INVENTORY.push(row); });
       }
     } else {
       let nextId = INVENTORY.length ? Math.max.apply(null, INVENTORY.map(x => x.id || 0)) + 1 : 1;
-      rows.forEach(p => { INVENTORY.push(Object.assign({ id: nextId++ }, p)); added++; });
+      payload.forEach(o => {
+        if (o.id != null) { const idx = INVENTORY.findIndex(x => x.id === o.id); if (idx >= 0) INVENTORY[idx] = Object.assign({}, INVENTORY[idx], o); else INVENTORY.push(o); }
+        else INVENTORY.push(Object.assign({ id: nextId++ }, o));
+      });
       persistLocal();
     }
     renderAll();
-    toast('Import complete ✓', added + ' product' + (added === 1 ? '' : 's') + ' added to the storefront.', 'ok');
+    const parts = [];
+    if (addedN) parts.push(addedN + ' added');
+    if (updated) parts.push(updated + ' updated');
+    toast('Import complete ✓', (parts.join(' · ') || 'No changes') + ' on the storefront.', 'ok');
     document.getElementById('csvPreview').style.display = 'none';
     document.getElementById('csvPreview').innerHTML = '';
     document.getElementById('csvFile').value = '';
     document.getElementById('csvFileName').textContent = '';
+    document.getElementById('csvUpdateMode').checked = false;
     csvHideImport();
   } catch (err) {
     toast('Import failed', (err && err.message) || 'Could not save the products.', 'err');
