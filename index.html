@@ -179,6 +179,12 @@ h1,h2,h3,h4,h5{font-family:'Oswald',sans-serif}
 .hero::before{content:"";position:absolute;inset:0;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="1" fill="%23ef6c1f" opacity=".15"/></svg>');opacity:.4;pointer-events:none}
 .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:var(--s-8);align-items:center;position:relative}
 .eyebrow{color:var(--accent-2);font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:12.5px;margin-bottom:var(--s-3);display:inline-flex;align-items:center;gap:8px}
+.hero-fb{position:absolute;top:0;right:0;z-index:4;display:inline-flex;align-items:center;gap:9px;
+  background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 15px 8px 11px;
+  color:var(--ink-2);font-weight:600;font-size:13px;letter-spacing:.02em;transition:var(--ease);box-shadow:var(--sh-1)}
+.hero-fb:hover,.hero-fb:focus-visible{border-color:#1877F2;color:#fff;background:rgba(24,119,242,.14);transform:translateY(-1px)}
+.hero-fb svg{width:22px;height:22px;color:#1877F2;flex:none;transition:var(--ease)}
+.hero-fb:hover svg{color:#4a94ff}
 .hero h1{font-size:60px;line-height:1.04;margin:0 0 var(--s-4);letter-spacing:.005em;font-weight:700}
 .hero h1 span{color:var(--accent)}
 .hero p.lede{color:var(--ink-2);font-size:18px;line-height:1.62;margin:0 0 var(--s-5);max-width:540px}
@@ -670,6 +676,9 @@ footer li a:hover{color:var(--accent-2)}
 @media (max-width:1000px){
   .hero{padding:var(--s-8) 0}
   .hero h1{font-size:44px}
+  .hero-fb-txt{display:none}
+  .hero-fb{padding:9px;border-radius:50%}
+  .hero .eyebrow{padding-right:52px}
   .section-head h2,.heritage h2{font-size:30px}
   .ma-steps,.pillars{grid-template-columns:repeat(2,1fr)}
   .testi-grid{grid-template-columns:1fr}
@@ -826,6 +835,10 @@ footer li a:hover{color:var(--accent-2)}
 <!-- =================== HERO =================== -->
 <section class="hero" aria-labelledby="heroTitle">
   <div class="container hero-grid">
+    <a class="hero-fb" href="https://www.facebook.com/profile.php?id=61557380038005" target="_blank" rel="noopener noreferrer" aria-label="Follow Outback Arms on Facebook (opens in a new tab)">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+      <span class="hero-fb-txt">Follow us</span>
+    </a>
     <div>
       <p class="eyebrow"><span aria-hidden="true">★</span> Plympton, MA · Serving the South Shore since 2012</p>
       <h1 id="heroTitle">Buy. Sell. Trade.<br/><span>Guns done the right way.</span></h1>
