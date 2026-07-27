@@ -614,6 +614,14 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 /* ---------- Footer ---------- */
 footer{background:#000;color:#a09b91;padding:var(--s-8) 0 var(--s-5);border-top:1px solid #1c1c1c}
 .f-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:var(--s-6);margin-bottom:var(--s-6)}
+.f-social{display:flex;gap:10px;margin-top:18px}
+.f-social a{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:#15171a;border:1px solid var(--line);transition:var(--ease)}
+.f-social a:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.f-social a svg{width:21px;height:21px}
+.f-social .fb{color:#1877F2}
+.f-social .fb:hover{border-color:#1877F2;background:rgba(24,119,242,.14)}
+.f-social .ig{color:#E1306C}
+.f-social .ig:hover{border-color:#E1306C;background:rgba(225,48,108,.14)}
 footer h5{font-family:'Oswald';color:var(--ink);font-size:14px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 var(--s-4)}
 footer ul{list-style:none;padding:0;margin:0}
 footer li{margin-bottom:var(--s-2);font-size:14px}
@@ -1777,6 +1785,11 @@ The Outback Arms crew</textarea>
         </div>
         <p style="font-size:14px;color:#a09b91;max-width:320px;line-height:1.6">A family-run gun shop on the South Shore since 2012 — proudly serving the Commonwealth where the shot heard 'round the world was fired. Buy, sell, trade. New &amp; used. Built for hunters, sport shooters, collectors, and families who protect their own.</p>
         <p style="font-size:14px;margin-top:14px;line-height:1.7"><a href="https://maps.google.com/?q=376+Main+Street,+Plympton,+MA+02367" style="color:var(--ink)" rel="noopener" target="_blank"><b>376 Main Street</b><br/>Plympton, MA 02367</a><br/>📞 <a href="tel:+17815856615" style="color:var(--accent-2)">781-585-6615</a></p>
+        <div class="f-social">
+          <a class="fb" href="https://www.facebook.com/profile.php?id=61557380038005" target="_blank" rel="noopener noreferrer" aria-label="Outback Arms on Facebook (opens in a new tab)">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+          </a>
+        </div>
       </div>
       <div>
         <h5>Shop</h5>
