@@ -14,6 +14,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="180x180" href="/favicon-180.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png" />
+<link rel="preload" as="image" href="/logo.png" fetchpriority="high" />
 <meta name="geo.region" content="US-MA" />
 <meta name="geo.placename" content="Plympton, Massachusetts" />
 <meta name="geo.position" content="41.9529;-70.8134" />
@@ -67,9 +68,13 @@
     { "@type": "OpeningHoursSpecification", "dayOfWeek": "Thursday", "opens": "10:00", "closes": "17:00" },
     { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "08:00", "closes": "17:00" }
   ],
-  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "213" },
-  "areaServed": ["Plympton MA","Plymouth County","South Shore MA","Massachusetts"],
-  "sameAs": []
+  "areaServed": ["Plympton MA","Plymouth County","South Shore MA","Massachusetts","Plymouth MA","Kingston MA","Middleboro MA","Halifax MA","Carver MA"],
+  "logo": "https://outbackarms.com/logo.png",
+  "hasMap": "https://maps.google.com/?q=376+Main+Street,+Plympton,+MA+02367",
+  "sameAs": [
+    "https://www.facebook.com/profile.php?id=61557380038005",
+    "https://www.instagram.com/outbackarmsplympton/"
+  ]
 }
 </script>
 <!-- FAQ structured data (mirrors the on-page FAQ accordion) -->
@@ -816,7 +821,7 @@ footer li a:hover{color:var(--accent-2)}
 <header class="nav">
   <div class="container nav-row">
     <a href="#top" class="brand" aria-label="Outback Arms home">
-      <div class="brand-mark"><img src="logo.png" alt="" width="44" height="44"/></div>
+      <div class="brand-mark"><img src="logo.png" alt="" width="44" height="44" fetchpriority="high" decoding="async"/></div>
       <div>
         <div class="brand-name">OUTBACK <span>ARMS</span></div>
         <div class="brand-sub">Est. 2012 · South Shore MA</div>
@@ -2340,7 +2345,7 @@ function renderStorefront() {
       '<div class="pic">' +
         '<span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
         '<button class="fav-btn ' + (faved ? 'on' : '') + '" aria-label="Toggle wishlist for ' + escapeHtml(p.name) + '" aria-pressed="' + faved + '" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>' +
-        '<img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + escapeHtml(p.brand) + ' ' + escapeHtml(p.name) + '" loading="lazy" decoding="async" onerror="imgFail(this)"/>' +
+        '<img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + escapeHtml(p.brand) + ' ' + escapeHtml(p.name) + '" width="600" height="450" loading="lazy" decoding="async" onerror="imgFail(this)"/>' +
         '<div class="quickview"><button class="btn btn-ghost btn-sm btn-block" onclick="openQuickView(' + p.id + ')">Quick View</button></div>' +
       '</div>' +
       '<div class="body">' +
@@ -2369,7 +2374,7 @@ function openQuickView(id) {
     '<button class="modal-close" aria-label="Close" onclick="closeModal()">&times;</button>' +
     '<div class="qv-grid">' +
       '<div class="qv-pic"><span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
-        '<img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + escapeHtml(p.brand) + ' ' + escapeHtml(p.name) + '" onerror="imgFail(this)"/></div>' +
+        '<img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + escapeHtml(p.brand) + ' ' + escapeHtml(p.name) + '" width="600" height="450" decoding="async" onerror="imgFail(this)"/></div>' +
       '<div class="qv-body">' +
         '<div class="brand">' + escapeHtml(p.brand) + '</div>' +
         '<h3 id="modalTitle">' + escapeHtml(p.name) + '</h3>' +
