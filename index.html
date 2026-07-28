@@ -73,17 +73,6 @@
 }
 </script>
 <!-- FAQ structured data (mirrors the on-page FAQ accordion) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {"@type":"Question","name":"How long does a firearms background check take in Massachusetts?","acceptedAnswer":{"@type":"Answer","text":"Most background checks clear in minutes at our counter. Massachusetts uses an electronic system, so approved buyers with a valid LTC or FID usually walk out the same day with a trigger lock included."}},
-    {"@type":"Question","name":"Do you handle FFL transfers, and what does it cost?","acceptedAnswer":{"@type":"Answer","text":"Yes. We accept incoming FFL transfers for online purchases and out-of-state sellers. Our flat transfer fee covers the background check and paperwork. Have the shipping dealer send to Outback Arms LLC, 376 Main Street, Plympton, MA 02367."}},
-    {"@type":"Question","name":"How do I get my Massachusetts License to Carry (LTC)?","acceptedAnswer":{"@type":"Answer","text":"You need a state-approved firearms safety certificate, then you apply through your local police department. We run Mass-approved safety classes every Saturday that provide the certificate you need to apply."}}
-  ]
-}
-</script>
 <style>
 /* =====================================================================
    OUTBACK ARMS v3 — Design System
@@ -1423,6 +1412,19 @@ footer li a:hover{color:var(--accent-2)}
     </div>
   </div>
 </section>
+<!-- FAQ structured data (Google rich results) -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How long does a background check take in Massachusetts?","acceptedAnswer":{"@type":"Answer","text":"Usually just a few minutes. Massachusetts uses an electronic system at our counter, so approved buyers with a valid LTC or FID almost always walk out the same day — trigger lock included, as state law requires."}},
+{"@type":"Question","name":"Do you do FFL transfers, and what's the fee?","acceptedAnswer":{"@type":"Answer","text":"Yes. Bought a gun online or from an out-of-state seller? Have them ship it to Outback Arms LLC, 376 Main Street, Plympton, MA 02367. We charge a flat per-firearm transfer fee that covers the background check and paperwork. We'll text you the moment it arrives."}},
+{"@type":"Question","name":"How do I get my Massachusetts LTC or FID card?","acceptedAnswer":{"@type":"Answer","text":"First you need a state-approved firearms safety certificate, then you apply through your local police department. We run Mass-approved safety classes every Saturday that give you exactly that certificate."}},
+{"@type":"Question","name":"Is everything on your site actually MA-compliant?","acceptedAnswer":{"@type":"Answer","text":"Yes. Every firearm on our floor is legal to sell in Massachusetts, and handguns come from the state's approved roster. What you see listed is what you can legally buy here — no bait-and-switch at the counter."}},
+{"@type":"Question","name":"How does a trade-in work?","acceptedAnswer":{"@type":"Answer","text":"Bring your firearm in (or send photos) and we'll make an honest offer — cash, store credit at a higher value, or consignment. We log every transaction legally through our FFL."}},
+{"@type":"Question","name":"Can you ship a gun to me?","acceptedAnswer":{"@type":"Answer","text":"Firearms ship dealer-to-dealer only. If you're out of the area, we ship to a licensed FFL near you and you complete the transfer and background check there. Ammo and accessories can ship where legal."}},
+{"@type":"Question","name":"Can I put a gun on hold?","acceptedAnswer":{"@type":"Answer","text":"Absolutely. Use the Hold This Gun button on any product or the intake form. We'll hold it up to 48 hours while we confirm details — no payment required to start."}},
+{"@type":"Question","name":"Do I need to be 21? What about long guns?","acceptedAnswer":{"@type":"Answer","text":"You must be 21+ for handguns and ammunition, and hold the correct MA license. Rifles and shotguns may be available to 18+ FID holders. Our staff will confirm exactly what your license allows — just ask."}}
+]}
+</script>
 
 <!-- =================== NEWSLETTER BAND =================== -->
 <section class="block" id="newsletter" aria-labelledby="nlTitle">
@@ -2042,6 +2044,10 @@ function closeModal() {
   overlay.classList.remove('open');
   document.body.style.overflow = '';
   if (lastFocused) lastFocused.focus();
+  // if a product deep-link is in the URL, clear it when the modal closes
+  if (location.hash && PRODUCT_SLUGS[decodeURIComponent(location.hash.slice(1))] && history.replaceState) {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
 }
 // close on overlay click, Escape, and close button
 document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
@@ -2374,11 +2380,62 @@ function openQuickView(id) {
           '<button class="btn btn-primary" onclick="closeModal();' + (p.stock === 0 ? 'openRestock' : 'openHold') + '(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')">' + (p.stock === 0 ? 'Notify Me When Back' : 'Hold This Gun') + '</button>' +
           '<button class="btn btn-ghost" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)">' + (faved ? '♥ Saved' : '♡ Wishlist') + '</button>' +
         '</div>' +
+        '<button class="btn btn-ghost btn-sm btn-block" style="margin-top:10px" onclick="copyProductLink(' + p.id + ')">🔗 Copy link to this product</button>' +
         '<p class="qv-note">Holds are free and last up to 48 hours. Final sale requires a valid MA license and an in-store background check.</p>' +
       '</div>' +
     '</div>'
   );
   document.getElementById('modalOverlay').setAttribute('aria-labelledby', 'modalTitle');
+  if (history.replaceState) { try { history.replaceState(null, '', location.pathname + location.search + '#' + productSlug(p)); } catch (e) {} }
+}
+
+/* --- SEO: shareable product deep-links + Product structured data --- */
+function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+let PRODUCT_SLUGS = {};
+function productSlug(p) { return slugify(p.brand + '-' + p.name); }
+function productUrl(p) { return location.origin + location.pathname + '#' + productSlug(p); }
+function buildProductSlugs() {
+  PRODUCT_SLUGS = {};
+  loadInventory().forEach(p => { const s = productSlug(p); if (s && !(s in PRODUCT_SLUGS)) PRODUCT_SLUGS[s] = p.id; });
+}
+function openProductFromHash() {
+  const slug = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+  if (slug && PRODUCT_SLUGS[slug]) openQuickView(PRODUCT_SLUGS[slug]);
+}
+window.addEventListener('hashchange', openProductFromHash);
+function copyProductLink(id) {
+  const p = loadInventory().find(x => x.id === id); if (!p) return;
+  const url = productUrl(p);
+  const done = () => toast('Link copied 🔗', 'Paste it anywhere to share this exact product.', 'ok');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(() => window.prompt('Copy this link:', url));
+  else window.prompt('Copy this link:', url);
+}
+function injectProductSchema() {
+  const items = loadInventory();
+  const data = {
+    "@context": "https://schema.org", "@type": "ItemList",
+    "itemListElement": items.map((p, i) => ({
+      "@type": "ListItem", "position": i + 1,
+      "item": {
+        "@type": "Product",
+        "name": (p.brand + ' ' + p.name).trim(),
+        "brand": { "@type": "Brand", "name": p.brand },
+        "category": p.cat,
+        "image": p.img || undefined,
+        "url": productUrl(p),
+        "offers": {
+          "@type": "Offer", "priceCurrency": "USD", "price": Number(p.price) || 0,
+          "availability": (Number(p.stock) > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": (p.cond && p.cond.toLowerCase().indexOf('used') >= 0) ? "https://schema.org/UsedCondition" : "https://schema.org/NewCondition",
+          "url": productUrl(p),
+          "seller": { "@type": "Organization", "name": "Outback Arms" }
+        }
+      }
+    }))
+  };
+  let el = document.getElementById('productSchema');
+  if (!el) { el = document.createElement('script'); el.type = 'application/ld+json'; el.id = 'productSchema'; document.head.appendChild(el); }
+  el.textContent = JSON.stringify(data);
 }
 
 /* =====================================================================
@@ -3687,6 +3744,8 @@ function updateOpenStatus() {
    ===================================================================== */
 function renderAll() {
   renderStorefront();
+  buildProductSlugs();     // SEO: refresh the product deep-link map
+  injectProductSchema();   // SEO: refresh Product structured data
   renderGotw();            // refresh the hero Gun-of-the-Week card
   updateWishCount();
   // refresh the admin table whenever the dashboard is on screen (either mode)
@@ -3966,6 +4025,7 @@ function renderGridLoading() {
   setInterval(updateOpenStatus, 60000);   // refresh each minute
   renderGridLoading();    // show skeletons until inventory arrives
   await bootData();       // inventory → cache → renderAll()
+  openProductFromHash();  // deep-link: open a product if the URL points to one
   await initAuth();       // restore customer session + render account portal
   await checkSession();   // restore staff admin session if present (staff-gated)
   hydrateWishRemote();    // merge any server-side wishlist (no-op in local mode)
