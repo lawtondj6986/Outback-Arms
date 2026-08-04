@@ -122,6 +122,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+html{overflow-anchor:none}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
@@ -387,6 +388,22 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .mrow-admin{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0;font-size:13.5px}
 .mrow-admin.past{opacity:.55}
 .mrow-admin .m-when{font-family:'Oswald';color:var(--accent-2);width:110px;flex:none}
+/* --- promo bar --- */
+.promo-bar{background:linear-gradient(90deg,var(--accent),#c4531a)}
+.promo-inner{display:flex;align-items:center;justify-content:center;gap:9px;padding:9px 40px;font-size:13.5px;font-weight:600;color:#fff;position:relative;text-align:center;line-height:1.4}
+.promo-dot{width:8px;height:8px;border-radius:50%;background:#fff;flex:none;box-shadow:0 0 0 4px rgba(255,255,255,.25);animation:promoPulse 2s ease-in-out infinite}
+@keyframes promoPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.promo-link{color:#fff;text-decoration:underline;font-weight:800;white-space:nowrap;margin-left:2px}
+.promo-x{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1;opacity:.85;padding:0}
+.promo-x:hover{opacity:1}
+@media (max-width:600px){.promo-inner{font-size:12.5px;padding:8px 34px}}
+/* --- Just In badge --- */
+.product .badge.justin{top:38px;background:#6ecb8a;color:#08130c}
+/* --- Text-us floating button --- */
+.text-fab{position:fixed;right:20px;bottom:22px;z-index:70;display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:12px 18px;border-radius:999px;font-weight:700;font-size:14px;box-shadow:0 8px 24px rgba(239,108,31,.42);transition:var(--ease)}
+.text-fab:hover,.text-fab:focus-visible{background:var(--accent-hi);transform:translateY(-2px);color:#fff}
+.text-fab svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:1000px){.text-fab{bottom:78px;padding:11px 15px}}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -865,6 +882,15 @@ footer li a:hover{color:var(--accent-2)}
 </script>
 
 <!-- =================== TOP UTILITY =================== -->
+<!-- Admin-editable promo bar -->
+<div class="promo-bar" id="promoBar" role="region" aria-label="Store announcement" style="display:none">
+  <div class="container promo-inner">
+    <span class="promo-dot" aria-hidden="true"></span>
+    <span id="promoText"></span>
+    <button class="promo-x" aria-label="Dismiss announcement" onclick="dismissPromo()">&times;</button>
+  </div>
+</div>
+
 <div class="utility">
   <div class="container row">
     <div class="left">
@@ -1066,6 +1092,7 @@ footer li a:hover{color:var(--accent-2)}
         <label for="pSort">Sort by</label>
         <select id="pSort" onchange="applyFilters()">
           <option value="feat">Featured</option>
+          <option value="new">Newest first</option>
           <option value="price-asc">Price: Low → High</option>
           <option value="price-desc">Price: High → Low</option>
           <option value="name">Name: A → Z</option>
@@ -2072,6 +2099,16 @@ The Outback Arms crew</textarea>
       <!-- SETTINGS TAB -->
       <div id="tab-settings" class="adminTab" style="display:none">
         <div class="forms-grid">
+          <div class="form-card" style="grid-column:1/-1">
+            <h3>📣 Promo Bar</h3>
+            <p class="desc">A banner across the top of the whole site — your fastest marketing lever. Use it for Wacky Wednesday, new arrivals, class dates, or "H4350 back in stock."</p>
+            <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="cfgPromoOn"/> <span>Show the promo bar on the site</span></label>
+            <div class="row2">
+              <div class="field"><label for="cfgPromoText">Message</label><input id="cfgPromoText" placeholder="🎯 New precision rifles just landed — shop before they're gone"/></div>
+              <div class="field"><label for="cfgPromoLink">Link (optional)</label><input id="cfgPromoLink" placeholder="#products"/></div>
+            </div>
+            <button class="btn btn-primary" onclick="savePromo()">Save Promo Bar</button>
+          </div>
           <div class="form-card">
             <h3>Store Hours</h3>
             <p class="desc">Edits push to homepage footer and Google Business Profile.</p>
@@ -2204,6 +2241,10 @@ The Outback Arms crew</textarea>
 </div>
 
 <!-- =================== FLOATING MOBILE CTA =================== -->
+<a class="text-fab" href="sms:+17815856615?body=Hi%20Outback%20Arms%2C%20I%20have%20a%20question%20about%20" aria-label="Text Outback Arms at 781-585-6615">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <span>Text us</span>
+</a>
 <div class="mobile-cta" aria-label="Quick actions">
   <a href="tel:+17815856615" class="btn btn-ghost"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Call</a>
   <a href="#products" class="btn btn-primary">Shop Guns →</a>
@@ -2704,6 +2745,7 @@ function getFiltered() {
   if (instock) items = items.filter(p => p.stock > 0);
 
   switch (sort) {
+    case 'new':        items.sort((a, b) => { const ta = a.created_at ? new Date(a.created_at).getTime() : 0, tb = b.created_at ? new Date(b.created_at).getTime() : 0; return (tb - ta) || ((b.id || 0) - (a.id || 0)); }); break;
     case 'price-asc':  items.sort((a, b) => a.price - b.price); break;
     case 'price-desc': items.sort((a, b) => b.price - a.price); break;
     case 'name':       items.sort((a, b) => a.name.localeCompare(b.name)); break;
@@ -2735,6 +2777,7 @@ function renderStorefront() {
     '<article class="product">' +
       '<div class="pic">' +
         '<span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
+        (isNewArrival(p) ? '<span class="badge justin">JUST IN</span>' : '') +
         '<button class="fav-btn ' + (faved ? 'on' : '') + '" aria-label="Toggle wishlist for ' + escapeHtml(p.name) + '" aria-pressed="' + faved + '" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>' +
         '<img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + escapeHtml(p.brand) + ' ' + escapeHtml(p.name) + '" width="600" height="450" loading="lazy" decoding="async" onerror="imgFail(this)"/>' +
         '<div class="quickview"><button class="btn btn-ghost btn-sm btn-block" onclick="openQuickView(' + p.id + ')">Quick View</button></div>' +
@@ -4566,8 +4609,60 @@ function resetMatchForm() {
   document.getElementById('mSaveBtn').textContent = '📅 Add Match';
 }
 
+/* ---------- Just-In new arrivals ---------- */
+function isNewArrival(p) {
+  if (!p || !p.created_at) return false;
+  const t = new Date(p.created_at).getTime();
+  return !isNaN(t) && (Date.now() - t) < 14 * 864e5;   // added within 14 days
+}
+
+/* ---------- Admin-editable promo bar (site-wide announcement) ---------- */
+let PROMO = { enabled: false, text: '', link: '' };
+async function bootPromo() {
+  if (usingSupabase()) {
+    try { const { data } = await sb.from('site_config').select('value').eq('key', 'announcement').maybeSingle(); if (data && data.value) PROMO = Object.assign({ enabled: false, text: '', link: '' }, data.value); }
+    catch (e) {}
+  } else {
+    try { const raw = localStorage.getItem('oa_promo'); if (raw) PROMO = Object.assign(PROMO, JSON.parse(raw)); } catch (e) {}
+  }
+  renderPromo(); fillPromoForm();
+}
+function renderPromo() {
+  const bar = document.getElementById('promoBar'); if (!bar) return;
+  let dismissed = ''; try { dismissed = localStorage.getItem('oa_promo_dismissed') || ''; } catch (e) {}
+  if (PROMO.enabled && PROMO.text && PROMO.text !== dismissed) {
+    document.getElementById('promoText').innerHTML = escapeHtml(PROMO.text) +
+      (PROMO.link ? ' <a class="promo-link" href="' + encodeURI(PROMO.link) + '"' + (/^https?:/i.test(PROMO.link) ? ' target="_blank" rel="noopener"' : '') + '>See details →</a>' : '');
+    bar.style.display = '';
+  } else { bar.style.display = 'none'; }
+}
+function dismissPromo() { try { localStorage.setItem('oa_promo_dismissed', PROMO.text || ''); } catch (e) {} renderPromo(); }
+function fillPromoForm() {
+  const en = document.getElementById('cfgPromoOn'), tx = document.getElementById('cfgPromoText'), lk = document.getElementById('cfgPromoLink');
+  if (en) en.checked = !!PROMO.enabled;
+  if (tx) tx.value = PROMO.text || '';
+  if (lk) lk.value = PROMO.link || '';
+}
+async function savePromo() {
+  PROMO = { enabled: document.getElementById('cfgPromoOn').checked, text: document.getElementById('cfgPromoText').value.trim(), link: document.getElementById('cfgPromoLink').value.trim() };
+  try { localStorage.removeItem('oa_promo_dismissed'); } catch (e) {}   // re-show the (new) message to everyone
+  if (usingSupabase()) {
+    const { error } = await sb.from('site_config').upsert({ key: 'announcement', value: PROMO });
+    if (error && /site_config/i.test(error.message || '')) {
+      try { localStorage.setItem('oa_promo', JSON.stringify(PROMO)); } catch (e) {}
+      toast('Saved locally', 'Run site-config.sql in Supabase to make the bar site-wide.', 'warn');
+    } else if (error) { toast('Save failed', error.message, 'err'); return; }
+    else { toast('Promo bar saved ✓', PROMO.enabled ? 'It\'s live across the site.' : 'Saved (currently hidden).', 'ok'); }
+  } else {
+    try { localStorage.setItem('oa_promo', JSON.stringify(PROMO)); } catch (e) {}
+    toast('Promo bar saved ✓', PROMO.enabled ? 'Live on this preview.' : 'Saved (hidden).', 'ok');
+  }
+  renderPromo();
+}
+
 (async function boot() {
   initSupabase();         // detect backend before adjusting the login UI
+  await bootPromo();      // load + render the site-wide promo bar
   adjustAdminLoginUI();   // relabel staff login to email when Supabase is live
   initConsent();          // analytics loads only after consent (and only if a GA id is set)
   updateOpenStatus();     // live "Open now / Closed" in the utility bar
