@@ -367,6 +367,26 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .comp-perks li::before{content:"✓";color:var(--ok);font-weight:800;flex:none}
 .comp-lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
 @media (max-width:820px){.comp-wrap{grid-template-columns:1fr}}
+/* --- match calendar --- */
+.match-list{display:flex;flex-direction:column;gap:var(--s-3)}
+.match-row{display:flex;gap:var(--s-4);align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s-4) var(--s-5);transition:var(--ease)}
+.match-row:hover{border-color:#45403a;transform:translateX(2px)}
+.match-date{flex:none;width:70px;text-align:center;border-right:1px solid var(--line);padding-right:var(--s-4)}
+.match-date .mo{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-2)}
+.match-date .dy{font-family:'Oswald';font-size:30px;line-height:1;color:var(--ink)}
+.match-date .yr{font-size:11px;color:var(--mute)}
+.match-body{flex:1;min-width:0}
+.match-body h4{margin:0 0 5px;font-size:16px}
+.match-body .meta{color:var(--ink-2);font-size:13.5px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.match-disc{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-2);background:rgba(239,108,31,.08);border:1px solid #3a2c1a;border-radius:999px;padding:2px 9px}
+.match-notes{color:var(--mute);font-size:13px;margin:6px 0 0;line-height:1.5}
+.match-cta{flex:none}
+.match-empty{text-align:center;padding:44px 20px;color:var(--mute);background:var(--panel);border:1px dashed var(--line);border-radius:var(--r-md)}
+.match-empty b{display:block;font-family:'Oswald';font-size:20px;color:var(--ink);margin-bottom:6px}
+/* admin matches */
+.mrow-admin{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0;font-size:13.5px}
+.mrow-admin.past{opacity:.55}
+.mrow-admin .m-when{font-family:'Oswald';color:var(--accent-2);width:110px;flex:none}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -1598,6 +1618,23 @@ footer li a:hover{color:var(--accent-2)}
   </div>
 </section>
 
+<!-- =================== NEW ENGLAND MATCH CALENDAR =================== -->
+<section class="block" id="matches" aria-labelledby="matchTitle">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">★ New England match calendar</p>
+        <h2 id="matchTitle">Where to shoot it for real.</h2>
+        <p>Upcoming F-Class, PRS, CMP, benchrest, and rimfire matches around New England — hand-picked by our staff. New to competition? Come in and we'll walk you through your first sign-up.</p>
+      </div>
+    </div>
+    <div id="matchList" class="match-list">
+      <div class="match-empty"><b>Loading the calendar…</b></div>
+    </div>
+    <p class="desc" style="text-align:center;margin-top:22px">Running a match we should list? <a href="#contact" style="color:var(--accent-2);text-decoration:underline">Tell us about it</a> or call <a href="tel:+17815856615" style="color:var(--accent-2)">781-585-6615</a>.</p>
+  </div>
+</section>
+
 <!-- =================== FAQ =================== -->
 <section class="block" id="faq" style="background:var(--bg-2)" aria-labelledby="faqTitle">
   <div class="container">
@@ -1716,6 +1753,7 @@ footer li a:hover{color:var(--accent-2)}
         <button role="tab" aria-selected="false" onclick="adminTab('leads', event)">📥 Leads <span id="leadsBadge" style="display:none;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:4px">0</span></button>
         <button role="tab" aria-selected="false" onclick="adminTab('orders', event)">🧾 Orders</button>
         <button role="tab" aria-selected="false" onclick="adminTab('campaigns', event)">📣 Campaigns</button>
+        <button role="tab" aria-selected="false" onclick="adminTab('matches', event)">📅 Matches</button>
         <button role="tab" aria-selected="false" onclick="adminTab('settings', event)">⚙️ Site Settings</button>
       </div>
 
@@ -2061,6 +2099,41 @@ The Outback Arms crew</textarea>
           </div>
         </div>
       </div>
+
+      <!-- MATCHES TAB -->
+      <div id="tab-matches" class="adminTab" style="display:none">
+        <div class="forms-grid">
+          <div class="form-card">
+            <h3 id="matchFormTitle">Add a match</h3>
+            <p class="desc">These appear on the public "New England match calendar." Past matches drop off automatically.</p>
+            <input type="hidden" id="mEditId"/>
+            <div class="row2">
+              <div class="field"><label for="mDate">Date *</label><input id="mDate" type="date"/><span class="err-msg">Pick a date.</span></div>
+              <div class="field"><label for="mDiscipline">Discipline</label>
+                <select id="mDiscipline"><option>F-Class</option><option>PRS/NRL</option><option>CMP / Service Rifle</option><option>NRA High Power</option><option>Benchrest</option><option>Rimfire</option><option>Long Range</option><option>Silhouette</option><option>Other</option></select>
+              </div>
+            </div>
+            <div class="field"><label for="mTitle">Match title *</label><input id="mTitle" placeholder="600yd F-Class Monthly"/><span class="err-msg">Enter a title.</span></div>
+            <div class="row2">
+              <div class="field"><label for="mRange">Range / club</label><input id="mRange" placeholder="Harvard Sportsmen's Club"/></div>
+              <div class="field"><label for="mLocation">Town, state</label><input id="mLocation" placeholder="Harvard, MA"/></div>
+            </div>
+            <div class="field"><label for="mUrl">Info / registration link</label><input id="mUrl" placeholder="https://..."/></div>
+            <div class="field"><label for="mNotes">Notes</label><input id="mNotes" placeholder="Squadding 8am, 88 rds, sighters + record"/></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary" id="mSaveBtn" onclick="saveMatch()">📅 Add Match</button>
+              <button class="btn btn-ghost" onclick="resetMatchForm()">Clear</button>
+            </div>
+          </div>
+          <div class="form-card" style="padding:0;overflow:hidden">
+            <div style="padding:18px 22px;border-bottom:1px solid var(--line)">
+              <h3 style="margin:0">Scheduled matches</h3>
+              <p class="desc" style="margin:4px 0 0">Everything you've posted. Edit or remove any time.</p>
+            </div>
+            <div id="matchAdminList" style="padding:8px 22px 18px"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -2101,6 +2174,7 @@ The Outback Arms crew</textarea>
           <li><a href="#classes">Safety Classes</a></li><li><a href="#trade">Consignment</a></li>
           <li><a href="#intake">Special Orders</a></li><li><a href="#faq">MA Buyer's Guide</a></li>
           <li><a href="#components">Powder &amp; Primer Alerts</a></li><li><a href="#resource">Long-Range Tools</a></li>
+          <li><a href="#matches">Match Calendar</a></li>
         </ul>
       </div>
       <div>
@@ -3166,6 +3240,7 @@ function adminTab(name, ev) {
   if (name === 'leads') renderLeads();
   if (name === 'orders') renderOrders();
   if (name === 'command') renderCommandCenter();
+  if (name === 'matches') renderMatchAdmin();
 }
 
 /* =====================================================================
@@ -4362,6 +4437,135 @@ function renderGridLoading() {
   update();
 })();
 
+/* =====================================================================
+   NEW ENGLAND MATCH CALENDAR — staff-managed, public read
+   Supabase 'matches' table when live; localStorage demo otherwise.
+   ===================================================================== */
+let MATCHES = [];
+function loadMatches() { return MATCHES; }
+function todayStr() { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+function _future(days) { const d = new Date(); d.setDate(d.getDate() + days); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function demoMatches() {
+  return [
+    { id: 1, date: _future(9),  title: '600yd F-Class Monthly', discipline: 'F-Class', range_name: 'Your local club', location: 'New England', url: '', notes: 'Open & FTR · squadding 8am (sample entry — edit in admin)' },
+    { id: 2, date: _future(16), title: 'CMP Service Rifle Match', discipline: 'CMP / Service Rifle', range_name: 'Your local club', location: 'New England', url: '', notes: 'Garand / M1A / AR service rifle (sample entry)' },
+    { id: 3, date: _future(23), title: 'Rimfire Precision Series', discipline: 'Rimfire', range_name: 'Your local club', location: 'New England', url: '', notes: '.22LR positional (sample entry)' }
+  ];
+}
+async function bootMatches() {
+  if (usingSupabase()) {
+    try { const { data, error } = await sb.from('matches').select('*').order('date', { ascending: true }); if (error) throw error; MATCHES = data || []; }
+    catch (e) { console.warn('[Outback] matches load failed:', e); MATCHES = []; }
+  } else {
+    try { const raw = localStorage.getItem('oa_matches'); if (raw) { MATCHES = JSON.parse(raw); } else { MATCHES = demoMatches(); localStorage.setItem('oa_matches', JSON.stringify(MATCHES)); } }
+    catch (e) { MATCHES = demoMatches(); }
+  }
+  renderMatches();
+  renderMatchAdmin();
+}
+function persistMatchesLocal() { try { localStorage.setItem('oa_matches', JSON.stringify(MATCHES)); } catch (e) {} }
+async function dbUpsertMatch(m) {
+  if (usingSupabase()) { const { data, error } = await sb.from('matches').upsert(m).select().single(); if (error) { toast('Save failed', error.message, 'err'); return null; } return data; }
+  persistMatchesLocal(); return m;
+}
+async function dbDeleteMatch(id) {
+  if (usingSupabase()) { const { error } = await sb.from('matches').delete().eq('id', id); if (error) { toast('Delete failed', error.message, 'err'); return false; } return true; }
+  persistMatchesLocal(); return true;
+}
+const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function fmtMatchDate(ds) { const p = String(ds || '').split('-'); if (p.length < 3) return { mo: '', dy: '', yr: '' }; return { mo: MO[parseInt(p[1], 10) - 1] || '', dy: String(parseInt(p[2], 10)), yr: p[0] }; }
+function renderMatches() {
+  const el = document.getElementById('matchList');
+  if (!el) return;
+  const today = todayStr();
+  const up = loadMatches().filter(m => m.date && m.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+  if (!up.length) {
+    el.innerHTML = '<div class="match-empty"><b>No matches posted right now</b>We keep this list current by hand. Call <a href="tel:+17815856615" style="color:var(--accent-2)">781-585-6615</a> for the latest New England schedule, or check back soon.</div>';
+    return;
+  }
+  el.innerHTML = up.map(m => {
+    const d = fmtMatchDate(m.date);
+    const loc = [m.range_name, m.location].filter(Boolean).join(' · ');
+    return '<div class="match-row">' +
+      '<div class="match-date"><div class="mo">' + d.mo + '</div><div class="dy">' + d.dy + '</div><div class="yr">' + d.yr + '</div></div>' +
+      '<div class="match-body"><h4>' + escapeHtml(m.title) + '</h4>' +
+        '<div class="meta">' + (m.discipline ? '<span class="match-disc">' + escapeHtml(m.discipline) + '</span>' : '') + (loc ? '<span>' + escapeHtml(loc) + '</span>' : '') + '</div>' +
+        (m.notes ? '<p class="match-notes">' + escapeHtml(m.notes) + '</p>' : '') +
+      '</div>' +
+      (m.url ? '<div class="match-cta"><a class="btn btn-ghost btn-sm" href="' + encodeURI(m.url) + '" target="_blank" rel="noopener">Details →</a></div>' : '') +
+    '</div>';
+  }).join('');
+}
+function renderMatchAdmin() {
+  const el = document.getElementById('matchAdminList');
+  if (!el) return;
+  const today = todayStr();
+  const all = loadMatches().slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (!all.length) { el.innerHTML = '<p class="desc" style="padding:14px 0">No matches yet. Add your first one on the left.</p>'; return; }
+  el.innerHTML = all.map(m => {
+    const past = m.date < today;
+    const d = fmtMatchDate(m.date);
+    return '<div class="mrow-admin' + (past ? ' past' : '') + '">' +
+      '<span class="m-when">' + d.mo + ' ' + d.dy + " '" + String(d.yr).slice(2) + '</span>' +
+      '<span style="flex:1;min-width:0"><b>' + escapeHtml(m.title) + '</b>' + (m.discipline ? ' · ' + escapeHtml(m.discipline) : '') + (past ? ' <span style="color:var(--mute)">(past)</span>' : '') + '</span>' +
+      '<span style="flex:none;display:flex;gap:6px">' +
+        '<button class="btn btn-ghost btn-sm" onclick="editMatch(' + m.id + ')">Edit</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="deleteMatch(' + m.id + ')">✕</button>' +
+      '</span></div>';
+  }).join('');
+}
+async function saveMatch() {
+  const date = document.getElementById('mDate').value;
+  const title = document.getElementById('mTitle').value.trim();
+  let bad = false;
+  [['mDate', date], ['mTitle', title]].forEach(([id, v]) => { const e = document.getElementById(id); if (!v) { e.classList.add('err'); bad = true; } else e.classList.remove('err'); });
+  if (bad) { toast('Missing fields', 'Date and title are required.', 'err'); return; }
+  const editId = document.getElementById('mEditId').value;
+  const gv = id => (document.getElementById(id).value || '').trim();
+  const m = { date, title, discipline: document.getElementById('mDiscipline').value, range_name: gv('mRange'), location: gv('mLocation'), url: gv('mUrl'), notes: gv('mNotes') };
+  if (editId) {
+    m.id = parseInt(editId, 10);
+    const i = MATCHES.findIndex(x => x.id === m.id);
+    if (i >= 0) MATCHES[i] = Object.assign({}, MATCHES[i], m);
+  } else {
+    if (!usingSupabase()) m.id = MATCHES.length ? Math.max.apply(null, MATCHES.map(x => x.id || 0)) + 1 : 1;
+    MATCHES.push(m);
+  }
+  resetMatchForm(); renderMatches(); renderMatchAdmin();
+  const saved = await dbUpsertMatch(m);
+  if (saved && usingSupabase() && !editId) { const idx = MATCHES.indexOf(m); if (idx >= 0) MATCHES[idx] = saved; renderMatches(); renderMatchAdmin(); }
+  toast(editId ? 'Match updated' : 'Match added', '"' + title + '" is on the public calendar.', 'ok');
+}
+function editMatch(id) {
+  const m = MATCHES.find(x => x.id === id); if (!m) return;
+  document.getElementById('mEditId').value = m.id;
+  document.getElementById('mDate').value = m.date || '';
+  document.getElementById('mTitle').value = m.title || '';
+  document.getElementById('mDiscipline').value = m.discipline || 'F-Class';
+  document.getElementById('mRange').value = m.range_name || '';
+  document.getElementById('mLocation').value = m.location || '';
+  document.getElementById('mUrl').value = m.url || '';
+  document.getElementById('mNotes').value = m.notes || '';
+  document.getElementById('matchFormTitle').textContent = 'Edit match';
+  document.getElementById('mSaveBtn').textContent = '💾 Save Changes';
+  document.getElementById('tab-matches').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+async function deleteMatch(id) {
+  const m = MATCHES.find(x => x.id === id); if (!m) return;
+  if (!confirm('Remove "' + m.title + '" from the calendar?')) return;
+  MATCHES = MATCHES.filter(x => x.id !== id);
+  renderMatches(); renderMatchAdmin();
+  await dbDeleteMatch(id);
+  toast('Match removed', '"' + m.title + '" is off the calendar.', 'ok');
+}
+function resetMatchForm() {
+  document.getElementById('mEditId').value = '';
+  ['mDate', 'mTitle', 'mRange', 'mLocation', 'mUrl', 'mNotes'].forEach(id => { const e = document.getElementById(id); e.value = ''; e.classList.remove('err'); });
+  document.getElementById('mDiscipline').selectedIndex = 0;
+  document.getElementById('matchFormTitle').textContent = 'Add a match';
+  document.getElementById('mSaveBtn').textContent = '📅 Add Match';
+}
+
 (async function boot() {
   initSupabase();         // detect backend before adjusting the login UI
   adjustAdminLoginUI();   // relabel staff login to email when Supabase is live
@@ -4374,6 +4578,7 @@ function renderGridLoading() {
   await initAuth();       // restore customer session + render account portal
   await checkSession();   // restore staff admin session if present (staff-gated)
   hydrateWishRemote();    // merge any server-side wishlist (no-op in local mode)
+  await bootMatches();    // load the public match calendar + admin list
   trackPageView();        // record a visit for the Command Center telemetry
 })();
 </script>
