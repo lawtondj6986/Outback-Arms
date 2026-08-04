@@ -323,6 +323,14 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .csv-errs li{margin:2px 0}
 .csv-new{color:var(--accent-2);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
 .csv-upd{color:#6ec1ff;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+/* --- precision spec pack UI --- */
+.disc-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:var(--s-4)}
+.disc-chip{background:var(--panel);border:1px solid var(--line);color:var(--ink-2);border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:var(--ease);font-family:'Inter'}
+.disc-chip:hover{border-color:var(--accent);color:var(--accent-2)}
+.disc-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.spec-line{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
+.spec-chip{font-size:11px;font-weight:600;color:var(--ink-2);background:#0e0f10;border:1px solid var(--line);border-radius:6px;padding:2px 8px;letter-spacing:.01em}
+.spec-chip.moa{color:var(--accent-2);border-color:#3a2c1a;background:rgba(239,108,31,.08)}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -955,6 +963,17 @@ footer li a:hover{color:var(--accent-2)}
       </div>
     </div>
 
+    <!-- Shop by discipline (shown once rifles carry discipline tags) -->
+    <div class="disc-chips" id="discChips" role="group" aria-label="Shop by discipline" style="display:none">
+      <button class="disc-chip on" data-disc="" onclick="setDiscipline('')">All</button>
+      <button class="disc-chip" data-disc="F-Class" onclick="setDiscipline('F-Class')">F-Class</button>
+      <button class="disc-chip" data-disc="PRS/NRL" onclick="setDiscipline('PRS/NRL')">PRS / NRL</button>
+      <button class="disc-chip" data-disc="Service Rifle" onclick="setDiscipline('Service Rifle')">CMP / Service Rifle</button>
+      <button class="disc-chip" data-disc="Benchrest" onclick="setDiscipline('Benchrest')">Benchrest</button>
+      <button class="disc-chip" data-disc="Rimfire" onclick="setDiscipline('Rimfire')">Rimfire Precision</button>
+      <button class="disc-chip" data-disc="Long Range" onclick="setDiscipline('Long Range')">Long Range</button>
+    </div>
+
     <!-- Filter / sort bar -->
     <div class="filter-bar" role="search" aria-label="Filter products">
       <div class="fb-field fb-search">
@@ -972,6 +991,10 @@ footer li a:hover{color:var(--accent-2)}
           <option>Optics</option><option>Ammo</option><option>Knives</option><option>Accessories</option>
           <option>Used</option><option>Muzzleloaders</option>
         </select>
+      </div>
+      <div class="fb-field" id="pCaliberField" style="display:none">
+        <label for="pCaliber">Caliber</label>
+        <select id="pCaliber" onchange="applyFilters()"><option value="">All calibers</option></select>
       </div>
       <div class="fb-field">
         <label for="pCond">Condition</label>
@@ -1710,6 +1733,22 @@ The Outback Arms crew</textarea>
             <div class="field"><label for="fStock">Stock quantity *</label><input id="fStock" type="number" placeholder="4"/></div>
           </div>
           <div class="field"><label for="fDesc">Description</label><textarea id="fDesc" rows="3" placeholder="Caliber, barrel length, capacity, notes..."></textarea></div>
+          <details style="border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:16px">
+            <summary style="cursor:pointer;font-weight:700;color:var(--accent-2);letter-spacing:.02em">🎯 Precision specs (optional — for rifles &amp; optics)</summary>
+            <div class="row2" style="margin-top:14px">
+              <div class="field"><label for="fCaliber">Caliber / chambering</label><input id="fCaliber" placeholder="6.5 Creedmoor"/></div>
+              <div class="field"><label for="fTwist">Twist rate</label><input id="fTwist" placeholder="1:8"/></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="fBarrel">Barrel length</label><input id="fBarrel" placeholder='26"'/></div>
+              <div class="field"><label for="fAction">Action / platform</label><input id="fAction" placeholder="Bolt · Zermatt TL3"/></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label for="fMoa">Accuracy guarantee</label><input id="fMoa" placeholder="Sub-MOA / 0.5 MOA"/></div>
+              <div class="field"><label for="fDiscipline">Discipline tags</label><input id="fDiscipline" placeholder="F-Class, PRS/NRL, Long Range"/></div>
+            </div>
+            <p class="fine" style="margin:2px 0 0">Comma-separate disciplines (F-Class, PRS/NRL, Service Rifle, Benchrest, Rimfire, Long Range). These power the caliber filter, the discipline chips, and the sub-MOA badge on the card.</p>
+          </details>
           <div class="field">
             <label for="fPhoto">Product photo</label>
             <div style="display:grid;grid-template-columns:1fr 220px;gap:14px;align-items:start">
@@ -2165,7 +2204,14 @@ async function bootData() {
    In local mode they just persist the cache to localStorage. */
 async function dbUpsertProduct(product) {
   if (usingSupabase()) {
-    const { data, error } = await sb.from('products').upsert(product).select().single();
+    let { data, error } = await sb.from('products').upsert(product).select().single();
+    // if the specs column isn't migrated yet, save without it so the add still works
+    if (error && product.specs && /specs/i.test(error.message || '')) {
+      const clone = Object.assign({}, product); delete clone.specs;
+      const retry = await sb.from('products').upsert(clone).select().single();
+      data = retry.data; error = retry.error;
+      if (!error) toast('Specs not stored yet', 'Run precision-specs.sql in Supabase to save precision specs.', 'warn');
+    }
     if (error) { toast('Save failed', error.message, 'err'); return null; }
     return data;
   }
@@ -2292,24 +2338,76 @@ function focusFilterSearch() {
   const el = document.getElementById('pSearch');
   if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.focus(), 350); }
 }
+
+/* ---------- Precision Spec Pack: specs, caliber filter, discipline chips ---------- */
+let DISCIPLINE_FILTER = '';
+function pspec(p) { return (p && p.specs) ? p.specs : {}; }
+function setDiscipline(d) {
+  DISCIPLINE_FILTER = d || '';
+  document.querySelectorAll('.disc-chip').forEach(c => c.classList.toggle('on', (c.dataset.disc || '') === DISCIPLINE_FILTER));
+  applyFilters();
+  const el = document.getElementById('products');
+  if (el && d) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function populateCaliberFilter() {
+  const sel = document.getElementById('pCaliber');
+  if (!sel) return;
+  const cur = sel.value;
+  const cals = [...new Set(loadInventory().map(p => pspec(p).caliber).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All calibers</option>' + cals.map(c => '<option>' + escapeHtml(c) + '</option>').join('');
+  if (cals.indexOf(cur) >= 0) sel.value = cur;
+}
+function updatePrecisionUI() {
+  const inv = loadInventory();
+  const calField = document.getElementById('pCaliberField');
+  if (calField) calField.style.display = inv.some(p => pspec(p).caliber) ? '' : 'none';
+  const chips = document.getElementById('discChips');
+  if (chips) chips.style.display = inv.some(p => pspec(p).discipline) ? '' : 'none';
+}
+// Small spec chips shown on each product card (caliber · twist · accuracy).
+function specStrip(p) {
+  const s = pspec(p), bits = [];
+  if (s.caliber) bits.push('<span class="spec-chip">' + escapeHtml(s.caliber) + '</span>');
+  if (s.twist) bits.push('<span class="spec-chip">' + escapeHtml(s.twist) + ' twist</span>');
+  if (s.moa) bits.push('<span class="spec-chip moa">◎ ' + escapeHtml(s.moa) + '</span>');
+  return bits.length ? '<div class="spec-line">' + bits.join('') + '</div>' : '';
+}
+// Full spec rows for the quick-view modal.
+function qvSpecRows(p) {
+  const s = pspec(p); let r = '';
+  const add = (label, val) => { if (val) r += '<span>' + label + '</span><b>' + escapeHtml(val) + '</b>'; };
+  add('Caliber', s.caliber);
+  add('Twist rate', s.twist);
+  add('Barrel', s.barrel);
+  add('Action', s.action);
+  add('Accuracy', s.moa);
+  add('Discipline', s.discipline);
+  return r;
+}
 function clearFilters() {
   ['pSearch'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('pCat').value = '';
   document.getElementById('pCond').value = '';
   document.getElementById('pSort').value = 'feat';
   document.getElementById('pInstock').checked = false;
+  const cal = document.getElementById('pCaliber'); if (cal) cal.value = '';
+  DISCIPLINE_FILTER = '';
+  document.querySelectorAll('.disc-chip').forEach(c => c.classList.toggle('on', !c.dataset.disc));
   applyFilters();
 }
 function getFiltered() {
   let items = loadInventory().slice();
   const q = (document.getElementById('pSearch')?.value || '').toLowerCase().trim();
   const cat = document.getElementById('pCat')?.value || '';
+  const caliber = document.getElementById('pCaliber')?.value || '';
   const cond = document.getElementById('pCond')?.value || '';
   const instock = document.getElementById('pInstock')?.checked;
   const sort = document.getElementById('pSort')?.value || 'feat';
 
-  if (q) items = items.filter(p => (p.name + ' ' + p.brand + ' ' + p.cat + ' ' + (p.desc || '')).toLowerCase().includes(q));
+  if (q) items = items.filter(p => (p.name + ' ' + p.brand + ' ' + p.cat + ' ' + (p.desc || '') + ' ' + (pspec(p).caliber || '') + ' ' + (pspec(p).discipline || '')).toLowerCase().includes(q));
   if (cat) items = items.filter(p => p.cat === cat);
+  if (caliber) items = items.filter(p => pspec(p).caliber === caliber);
+  if (DISCIPLINE_FILTER) items = items.filter(p => (pspec(p).discipline || '').toLowerCase().includes(DISCIPLINE_FILTER.toLowerCase()));
   if (cond === 'New') items = items.filter(p => p.cond === 'New' || p.cond === 'Clearance');
   if (cond === 'Used') items = items.filter(p => p.cond.startsWith('Used') || p.cond === 'Consignment');
   if (instock) items = items.filter(p => p.stock > 0);
@@ -2353,6 +2451,7 @@ function renderStorefront() {
       '<div class="body">' +
         '<span class="brand">' + escapeHtml(p.brand) + '</span>' +
         '<h4>' + escapeHtml(p.name) + '</h4>' +
+        specStrip(p) +
         '<div class="meta"><span class="price">$' + Number(p.price).toLocaleString() + '</span><span class="stock ' + stockClass + '">' + stockText + '</span></div>' +
       '</div>' +
       '<div class="card-actions">' +
@@ -2382,7 +2481,7 @@ function openQuickView(id) {
         '<h3 id="modalTitle">' + escapeHtml(p.name) + '</h3>' +
         '<div class="qv-price">$' + Number(p.price).toLocaleString() + '</div>' +
         '<p class="qv-desc">' + escapeHtml(p.desc || 'Verified in-store by Outback Arms staff. Contact us for full specs and current availability.') + '</p>' +
-        '<div class="qv-specs"><span>Category</span><b>' + escapeHtml(p.cat) + '</b><span>Condition</span><b>' + escapeHtml(p.cond) + '</b><span>Availability</span><b>' + stockLine + '</b><span>Compliance</span><b>MA-compliant ✓</b></div>' +
+        '<div class="qv-specs">' + qvSpecRows(p) + '<span>Category</span><b>' + escapeHtml(p.cat) + '</b><span>Condition</span><b>' + escapeHtml(p.cond) + '</b><span>Availability</span><b>' + stockLine + '</b><span>Compliance</span><b>MA-compliant ✓</b></div>' +
         '<div class="qv-actions">' +
           '<button class="btn btn-primary" onclick="closeModal();' + (p.stock === 0 ? 'openRestock' : 'openHold') + '(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')">' + (p.stock === 0 ? 'Notify Me When Back' : 'Hold This Gun') + '</button>' +
           '<button class="btn btn-ghost" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)">' + (faved ? '♥ Saved' : '♡ Wishlist') + '</button>' +
@@ -3194,6 +3293,8 @@ function editProduct(id) {
   document.getElementById('fPrice').value = p.price;
   document.getElementById('fStock').value = p.stock;
   document.getElementById('fDesc').value = p.desc || '';
+  const sp = pspec(p);
+  [['fCaliber', 'caliber'], ['fTwist', 'twist'], ['fBarrel', 'barrel'], ['fAction', 'action'], ['fMoa', 'moa'], ['fDiscipline', 'discipline']].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.value = sp[k] || ''; });
   document.getElementById('fPhotoUrl').value = p.img || '';
   document.getElementById('photoPreview').src = p.img || '';
   document.getElementById('formTitle').textContent = 'Edit Product';
@@ -3249,12 +3350,14 @@ async function saveProduct() {
 
   const editId = document.getElementById('editId').value;
   const photoUrl = document.getElementById('fPhotoUrl').value.trim() || document.getElementById('photoPreview').src || '';
+  const gv = id => (document.getElementById(id)?.value || '').trim();
   const data = {
     name, brand, price, stock,
     cat: document.getElementById('fCat').value,
     cond: document.getElementById('fCond').value,
     desc: document.getElementById('fDesc').value.trim(),
-    img: photoUrl
+    img: photoUrl,
+    specs: { caliber: gv('fCaliber'), twist: gv('fTwist'), barrel: gv('fBarrel'), action: gv('fAction'), moa: gv('fMoa'), discipline: gv('fDiscipline') }
   };
 
   if (editId) {
@@ -3287,7 +3390,7 @@ async function saveProduct() {
 }
 function resetForm() {
   document.getElementById('editId').value = '';
-  ['fName', 'fBrand', 'fPrice', 'fStock', 'fDesc', 'fPhotoUrl'].forEach(id => { const el = document.getElementById(id); el.value = ''; el.classList.remove('err'); });
+  ['fName', 'fBrand', 'fPrice', 'fStock', 'fDesc', 'fPhotoUrl', 'fCaliber', 'fTwist', 'fBarrel', 'fAction', 'fMoa', 'fDiscipline'].forEach(id => { const el = document.getElementById(id); if (el) { el.value = ''; el.classList.remove('err'); } });
   document.getElementById('fCat').selectedIndex = 0;
   document.getElementById('fCond').selectedIndex = 0;
   document.getElementById('fPhoto').value = '';
@@ -3302,7 +3405,7 @@ function resetForm() {
    result (valid + skipped rows), then batch-inserts to Supabase (staff-gated
    by RLS) or localStorage in demo mode. */
 let CSV_ROWS = [];
-const CSV_TEMPLATE_COLS = ['name', 'brand', 'category', 'condition', 'price', 'stock', 'description', 'image_url'];
+const CSV_TEMPLATE_COLS = ['name', 'brand', 'category', 'condition', 'price', 'stock', 'description', 'image_url', 'caliber', 'twist', 'barrel', 'action', 'moa', 'discipline'];
 const CSV_SYN = {
   name:  ['name', 'product', 'product name', 'title', 'item'],
   brand: ['brand', 'make', 'manufacturer', 'mfg'],
@@ -3311,7 +3414,13 @@ const CSV_SYN = {
   price: ['price', 'cost', 'msrp', 'price usd', 'retail'],
   stock: ['stock', 'qty', 'quantity', 'stock quantity', 'in stock', 'count', 'on hand', 'onhand'],
   desc:  ['description', 'desc', 'details', 'notes', 'summary'],
-  img:   ['image', 'image url', 'img', 'photo', 'photo url', 'picture']
+  img:   ['image', 'image url', 'img', 'photo', 'photo url', 'picture'],
+  caliber:    ['caliber', 'chambering', 'cal', 'cartridge'],
+  twist:      ['twist', 'twist rate'],
+  barrel:     ['barrel', 'barrel length', 'bbl'],
+  action:     ['action', 'platform'],
+  moa:        ['moa', 'accuracy', 'guarantee', 'sub-moa', 'submoa'],
+  discipline: ['discipline', 'disciplines', 'use', 'tags']
 };
 const CSV_CATS = ['Handguns', 'Rifles', 'Shotguns', 'Optics', 'Ammo', 'Knives', 'Accessories', 'Used', 'Muzzleloaders'];
 function csvNorm(h) { return String(h || '').toLowerCase().replace(/[_\-()]/g, ' ').replace(/\s+/g, ' ').trim(); }
@@ -3320,9 +3429,9 @@ function csvCanonCat(v) { v = String(v || '').trim(); if (!v) return 'Accessorie
 function downloadCsvTemplate() {
   const rows = [
     CSV_TEMPLATE_COLS.join(','),
-    '"Glock G19 Gen 5 9mm",Glock,Handguns,New,649,4,"Striker-fired 9mm. 15+1 capacity.",',
-    '"Strike Eagle 1-8x24 FFP",Vortex,Optics,New,549,7,"First focal plane riflescope.",',
-    '"5.56 NATO 55gr — 500rd case",Federal,Ammo,New,249,10,"American Eagle FMJ, brass case.",'
+    '"Bergara B-14 HMR",Bergara,Rifles,New,1149,3,"Molded mini-chassis, threaded barrel.",,6.5 Creedmoor,1:8,24 in,Bolt,Sub-MOA,"F-Class, Long Range"',
+    '"Vudoo V-22",Vudoo Gun Works,Rifles,New,2695,1,"Repeater rimfire precision action.",,.22 LR,1:16,20 in,Bolt,Sub-MOA,"Rimfire, Benchrest"',
+    '"Glock G19 Gen 5 9mm",Glock,Handguns,New,649,4,"Striker-fired 9mm. 15+1 capacity."'
   ].join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([rows], { type: 'text/csv' }));
@@ -3392,7 +3501,7 @@ function previewCsv(e) {
         if (!isNaN(idv) && csvById[idv]) matchId = idv;
         else { const hit = csvByKey[name.toLowerCase() + '|' + brand.toLowerCase()]; if (hit) matchId = hit.id; }
       }
-      valid.push({ name, brand, cat: csvCanonCat(get('cat')), cond: get('cond') || 'New', price, stock, desc: get('desc'), img: get('img'), __matchId: matchId });
+      valid.push({ name, brand, cat: csvCanonCat(get('cat')), cond: get('cond') || 'New', price, stock, desc: get('desc'), img: get('img'), specs: { caliber: get('caliber'), twist: get('twist'), barrel: get('barrel'), action: get('action'), moa: get('moa'), discipline: get('discipline') }, __matchId: matchId });
     }
     CSV_ROWS = valid;
     const updCount = valid.filter(v => v.__matchId != null).length;
@@ -3431,7 +3540,7 @@ async function runCsvImport() {
   btn.disabled = true; btn.textContent = 'Importing…';
   // Rows carrying an id update that product; rows without one insert as new.
   const payload = CSV_ROWS.map(v => {
-    const o = { name: v.name, brand: v.brand, cat: v.cat, cond: v.cond, price: v.price, stock: v.stock, desc: v.desc, img: v.img };
+    const o = { name: v.name, brand: v.brand, cat: v.cat, cond: v.cond, price: v.price, stock: v.stock, desc: v.desc, img: v.img, specs: v.specs || {} };
     if (v.__matchId != null) o.id = v.__matchId;
     return o;
   });
@@ -3440,7 +3549,15 @@ async function runCsvImport() {
   try {
     if (usingSupabase()) {
       for (let i = 0; i < payload.length; i += 500) {
-        const { data, error } = await sb.from('products').upsert(payload.slice(i, i + 500)).select();
+        let chunk = payload.slice(i, i + 500);
+        let { data, error } = await sb.from('products').upsert(chunk).select();
+        // graceful fallback if the specs column isn't migrated yet
+        if (error && /specs/i.test(error.message || '')) {
+          chunk = chunk.map(o => { const c = Object.assign({}, o); delete c.specs; return c; });
+          const retry = await sb.from('products').upsert(chunk).select();
+          data = retry.data; error = retry.error;
+          if (!error) toast('Specs not stored yet', 'Run precision-specs.sql in Supabase to save specs on import.', 'warn');
+        }
         if (error) throw error;
         (data || []).forEach(row => { const idx = INVENTORY.findIndex(x => x.id === row.id); if (idx >= 0) INVENTORY[idx] = row; else INVENTORY.push(row); });
       }
@@ -3751,6 +3868,8 @@ function updateOpenStatus() {
    ===================================================================== */
 function renderAll() {
   renderStorefront();
+  populateCaliberFilter(); // precision: refresh caliber dropdown from inventory
+  updatePrecisionUI();     // show/hide caliber filter + discipline chips
   buildProductSlugs();     // SEO: refresh the product deep-link map
   injectProductSchema();   // SEO: refresh Product structured data
   renderGotw();            // refresh the hero Gun-of-the-Week card
