@@ -360,6 +360,13 @@ section.block{padding:var(--s-9) 0;border-bottom:1px solid var(--line)}
 .edu-card p{font-size:13.5px;color:var(--ink-2);line-height:1.6;margin:0}
 .edu-card a{color:var(--accent-2);text-decoration:underline}
 @media (max-width:820px){.calc-grid{grid-template-columns:1fr}.edu-grid{grid-template-columns:1fr}}
+/* --- component restock alerts --- */
+.comp-wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:var(--s-7);align-items:start}
+.comp-perks{list-style:none;padding:0;margin:20px 0 0;display:flex;flex-direction:column;gap:9px;color:var(--ink-2);font-size:14.5px}
+.comp-perks li{display:flex;gap:9px;align-items:flex-start}
+.comp-perks li::before{content:"✓";color:var(--ok);font-weight:800;flex:none}
+.comp-lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+@media (max-width:820px){.comp-wrap{grid-template-columns:1fr}}
 .qv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
 .qv-pic{aspect-ratio:4/3;background:#0b0c0d;position:relative;border-right:1px solid var(--line)}
 .qv-pic img{width:100%;height:100%;object-fit:cover}
@@ -1018,8 +1025,9 @@ footer li a:hover{color:var(--accent-2)}
         <select id="pCat" onchange="applyFilters()">
           <option value="">All categories</option>
           <option>Handguns</option><option>Rifles</option><option>Shotguns</option>
-          <option>Optics</option><option>Ammo</option><option>Knives</option><option>Accessories</option>
-          <option>Used</option><option>Muzzleloaders</option>
+          <option>Optics</option><option>Ammo</option><option>Powder</option><option>Primers</option>
+          <option>Brass</option><option>Bullets</option><option>Reloading</option>
+          <option>Knives</option><option>Accessories</option><option>Used</option><option>Muzzleloaders</option>
         </select>
       </div>
       <div class="fb-field" id="pCaliberField" style="display:none">
@@ -1551,6 +1559,45 @@ footer li a:hover{color:var(--accent-2)}
   </div>
 </section>
 
+<!-- =================== COMPONENT RESTOCK ALERTS =================== -->
+<section class="block" id="components" style="background:var(--bg-2)" aria-labelledby="compTitle">
+  <div class="container">
+    <div class="comp-wrap">
+      <div>
+        <p class="eyebrow">★ Reloading · Never miss a restock</p>
+        <h2 id="compTitle">Powder &amp; primer restock alerts.</h2>
+        <p class="lede-sm">Components sell out the day they land. Tell us what you run — powders, primers, brass, bullets — and we'll text or email you the <b style="color:var(--ink)">moment it's back on the shelf</b>, before the shelf's empty again.</p>
+        <ul class="comp-perks">
+          <li>Only the components you pick — no spam, ever</li>
+          <li>First to know, first in line at the counter</li>
+          <li>Text or email, your call — reply STOP anytime</li>
+        </ul>
+      </div>
+      <form class="form-card" id="compForm" novalidate>
+        <label class="comp-lbl">What do you want alerts on?</label>
+        <div class="segment-pick" style="margin-bottom:18px">
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Rifle powder</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Pistol powder</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Large rifle primers</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Small rifle primers</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Match / BR primers</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Brass</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Match bullets</span>
+          <span class="tag-pick" role="checkbox" tabindex="0" aria-checked="false">Dies &amp; tools</span>
+        </div>
+        <div class="field"><label for="compDetail">Anything specific?</label><input id="compDetail" placeholder="H4350, CCI BR2, Lapua 6.5 CM brass, 140gr ELD-M…"/></div>
+        <div class="row2">
+          <div class="field"><label for="compName">Name</label><input id="compName" required placeholder="Dan Jameson"/><span class="err-msg">Please enter your name.</span></div>
+          <div class="field"><label for="compEmail">Email</label><input id="compEmail" type="email" required placeholder="you@email.com"/><span class="err-msg">Enter a valid email.</span></div>
+        </div>
+        <div class="field"><label for="compPhone">Mobile <span style="color:var(--mute);font-weight:400">(optional — for a faster text)</span></label><input id="compPhone" type="tel" placeholder="(508) 555-0149"/></div>
+        <label class="chk"><input type="checkbox" required/> <span>OK to contact me about component restocks. Reply STOP anytime. <a href="#" onclick="openPrivacy();return false">Privacy</a>.</span></label>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Notify me on restocks →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
 <!-- =================== FAQ =================== -->
 <section class="block" id="faq" style="background:var(--bg-2)" aria-labelledby="faqTitle">
   <div class="container">
@@ -1854,7 +1901,7 @@ The Outback Arms crew</textarea>
           </div>
           <div class="row2">
             <div class="field"><label for="fCat">Category *</label>
-              <select id="fCat"><option>Handguns</option><option>Rifles</option><option>Shotguns</option><option>Optics</option><option>Ammo</option><option>Knives</option><option>Accessories</option><option>Used</option><option>Muzzleloaders</option></select>
+              <select id="fCat"><option>Handguns</option><option>Rifles</option><option>Shotguns</option><option>Optics</option><option>Ammo</option><option>Powder</option><option>Primers</option><option>Brass</option><option>Bullets</option><option>Reloading</option><option>Knives</option><option>Accessories</option><option>Used</option><option>Muzzleloaders</option></select>
             </div>
             <div class="field"><label for="fCond">Condition</label>
               <select id="fCond"><option>New</option><option>Used · Like New</option><option>Used · Excellent</option><option>Used · Good</option><option>Consignment</option><option>Clearance</option></select>
@@ -1924,6 +1971,7 @@ The Outback Arms crew</textarea>
                 <option value="email_signup">Email signups</option>
                 <option value="newsletter">Newsletter</option>
                 <option value="restock">Back-in-stock alerts</option>
+                <option value="component_alert">Component alerts</option>
               </select>
               <button class="btn btn-ghost btn-sm" onclick="renderLeads()">↻ Refresh</button>
             </div>
@@ -2052,6 +2100,7 @@ The Outback Arms crew</textarea>
           <li><a href="#faq">FFL Transfers</a></li><li><a href="#trade">Trade-In Quote</a></li>
           <li><a href="#classes">Safety Classes</a></li><li><a href="#trade">Consignment</a></li>
           <li><a href="#intake">Special Orders</a></li><li><a href="#faq">MA Buyer's Guide</a></li>
+          <li><a href="#components">Powder &amp; Primer Alerts</a></li><li><a href="#resource">Long-Range Tools</a></li>
         </ul>
       </div>
       <div>
@@ -3006,6 +3055,8 @@ wireForm('intakeForm', 'inquiry', () => successModal('Request received ✓',
 wireForm('smsForm', 'sms_signup', () => toast('You\'re on the list 📱', 'Reply Y to the confirmation text to start getting Outback deals.', 'ok'));
 wireForm('emailForm', 'email_signup', () => toast('Subscribed 📧', 'Welcome to Gun of the Week. Check your inbox to confirm.', 'ok'));
 wireForm('newsForm', 'newsletter', () => toast('Welcome to The Range Report!', 'One good email a month, starting soon.', 'ok'));
+wireForm('compForm', 'component_alert', () => successModal('You\'re on the restock list ✓',
+  'We\'ll reach out the moment your components hit the shelf — before they\'re gone. Reload on, friend. 🎯'));
 
 /* To add Google reCAPTCHA v3 later:
    1. load the api.js?render=SITE_KEY script tag in <head>
@@ -3262,7 +3313,7 @@ function leadSummary(type, p) {
   if (type === 'email_signup' || type === 'newsletter') return 'Email opt-in';
   return type;
 }
-const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News', restock: 'Restock' };
+const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News', restock: 'Restock', component_alert: 'Component' };
 function fmtLeadDate(iso) {
   try { return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
   catch (e) { return iso || ''; }
@@ -3590,7 +3641,7 @@ const CSV_SYN = {
   moa:        ['moa', 'accuracy', 'guarantee', 'sub-moa', 'submoa'],
   discipline: ['discipline', 'disciplines', 'use', 'tags']
 };
-const CSV_CATS = ['Handguns', 'Rifles', 'Shotguns', 'Optics', 'Ammo', 'Knives', 'Accessories', 'Used', 'Muzzleloaders'];
+const CSV_CATS = ['Handguns', 'Rifles', 'Shotguns', 'Optics', 'Ammo', 'Powder', 'Primers', 'Brass', 'Bullets', 'Reloading', 'Knives', 'Accessories', 'Used', 'Muzzleloaders'];
 function csvNorm(h) { return String(h || '').toLowerCase().replace(/[_\-()]/g, ' ').replace(/\s+/g, ' ').trim(); }
 function csvCanonCat(v) { v = String(v || '').trim(); if (!v) return 'Accessories'; const m = CSV_CATS.find(c => c.toLowerCase() === v.toLowerCase()); return m || v; }
 
