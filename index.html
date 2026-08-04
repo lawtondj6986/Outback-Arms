@@ -1662,6 +1662,49 @@ footer li a:hover{color:var(--accent-2)}
   </div>
 </section>
 
+<!-- =================== YOUTH SHOOTING PROGRAM =================== -->
+<section class="block" id="youth" aria-labelledby="youthTitle">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">★ Next generation · Youth .22LR precision</p>
+        <h2 id="youthTitle">Where young shooters start right.</h2>
+        <p>A safety-first, fully supervised <b style="color:var(--ink)">.22LR rimfire precision program</b> at our local club — the same fundamentals that build champions, taught with patience for first-timers. Marksmanship, discipline, focus, and a whole lot of confidence.</p>
+      </div>
+    </div>
+    <div class="comp-wrap">
+      <div>
+        <ul class="comp-perks">
+          <li>Muzzle-awareness &amp; range discipline from the very first session</li>
+          <li>Real fundamentals: position, breathing, sight picture, trigger control</li>
+          <li>Rimfire precision — affordable trigger time that builds genuine skill</li>
+          <li>Mentorship from seasoned competitors (F-Class, CMP, benchrest)</li>
+          <li>Parents &amp; guardians always welcome on the line</li>
+        </ul>
+        <p class="fine" style="margin-top:18px">Every session is supervised and MA-compliant — our staff confirm all age and licensing requirements before anyone touches a firearm. New shooters and loaner rifles welcome.</p>
+      </div>
+      <form class="form-card" id="youthForm" novalidate>
+        <h3 style="margin:0 0 4px">Get your young shooter started</h3>
+        <p class="desc" style="margin:0 0 16px">Tell us a bit and we'll reach out with the next session dates.</p>
+        <div class="row2">
+          <div class="field"><label for="yParent">Parent / guardian name</label><input id="yParent" required placeholder="Dan Jameson"/><span class="err-msg">Please enter your name.</span></div>
+          <div class="field"><label for="yEmail">Email</label><input id="yEmail" type="email" required placeholder="you@email.com"/><span class="err-msg">Enter a valid email.</span></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="yYouth">Young shooter's first name</label><input id="yYouth" placeholder="Optional"/></div>
+          <div class="field"><label for="yPhone">Mobile <span style="color:var(--mute);font-weight:400">(optional)</span></label><input id="yPhone" type="tel" placeholder="(508) 555-0149"/></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="yAge">Age group</label><select id="yAge"><option>Under 10</option><option>10–12</option><option>13–15</option><option>16–17</option></select></div>
+          <div class="field"><label for="yLevel">Experience</label><select id="yLevel"><option>Brand new</option><option>Shot a little</option><option>Competing already</option></select></div>
+        </div>
+        <label class="chk"><input type="checkbox" required/> <span>I'm the parent/guardian and consent to be contacted about the youth program. <a href="#" onclick="openPrivacy();return false">Privacy</a>.</span></label>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">Sign my shooter up →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
 <!-- =================== FAQ =================== -->
 <section class="block" id="faq" style="background:var(--bg-2)" aria-labelledby="faqTitle">
   <div class="container">
@@ -2037,6 +2080,7 @@ The Outback Arms crew</textarea>
                 <option value="newsletter">Newsletter</option>
                 <option value="restock">Back-in-stock alerts</option>
                 <option value="component_alert">Component alerts</option>
+                <option value="youth_program">Youth program</option>
               </select>
               <button class="btn btn-ghost btn-sm" onclick="renderLeads()">↻ Refresh</button>
             </div>
@@ -2211,7 +2255,7 @@ The Outback Arms crew</textarea>
           <li><a href="#classes">Safety Classes</a></li><li><a href="#trade">Consignment</a></li>
           <li><a href="#intake">Special Orders</a></li><li><a href="#faq">MA Buyer's Guide</a></li>
           <li><a href="#components">Powder &amp; Primer Alerts</a></li><li><a href="#resource">Long-Range Tools</a></li>
-          <li><a href="#matches">Match Calendar</a></li>
+          <li><a href="#matches">Match Calendar</a></li><li><a href="#youth">Youth Program</a></li>
         </ul>
       </div>
       <div>
@@ -3174,6 +3218,8 @@ wireForm('emailForm', 'email_signup', () => toast('Subscribed 📧', 'Welcome to
 wireForm('newsForm', 'newsletter', () => toast('Welcome to The Range Report!', 'One good email a month, starting soon.', 'ok'));
 wireForm('compForm', 'component_alert', () => successModal('You\'re on the restock list ✓',
   'We\'ll reach out the moment your components hit the shelf — before they\'re gone. Reload on, friend. 🎯'));
+wireForm('youthForm', 'youth_program', () => successModal('Welcome to the program ✓',
+  'We\'ll reach out with the next session dates. Safe, supervised, and a lot of fun — this is where great shooters start. 🎯'));
 
 /* To add Google reCAPTCHA v3 later:
    1. load the api.js?render=SITE_KEY script tag in <head>
@@ -3431,7 +3477,7 @@ function leadSummary(type, p) {
   if (type === 'email_signup' || type === 'newsletter') return 'Email opt-in';
   return type;
 }
-const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News', restock: 'Restock', component_alert: 'Component' };
+const LEAD_LABEL = { hold: 'Hold', inquiry: 'Inquiry', class_signup: 'Class', sms_signup: 'SMS', email_signup: 'Email', newsletter: 'News', restock: 'Restock', component_alert: 'Component', youth_program: 'Youth' };
 function fmtLeadDate(iso) {
   try { return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
   catch (e) { return iso || ''; }
