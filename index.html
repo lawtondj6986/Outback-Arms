@@ -831,14 +831,14 @@ footer li a:hover{color:var(--accent-2)}
       <a href="#cats">Shop</a>
       <div class="has-sub"><a href="#products" aria-haspopup="true">Firearms ▾</a>
         <div class="submenu">
-          <a href="#products">Handguns</a><a href="#products">Rifles</a><a href="#products">Shotguns</a>
-          <a href="#products">Used Firearms</a><a href="#products">Muzzleloaders</a><a href="#products">LE / AR Platform</a>
+          <a href="#products" onclick="setCat('Handguns')">Handguns</a><a href="#products" onclick="setCat('Rifles')">Rifles</a><a href="#products" onclick="setCat('Shotguns')">Shotguns</a>
+          <a href="#products" onclick="setCat('Used')">Used Firearms</a><a href="#products" onclick="setCat('Muzzleloaders')">Muzzleloaders</a><a href="#products" onclick="setCat('Rifles')">LE / AR Platform</a>
         </div>
       </div>
       <div class="has-sub"><a href="#products" aria-haspopup="true">Optics ▾</a>
         <div class="submenu">
-          <a href="#products">Scopes</a><a href="#products">Red Dots &amp; Sights</a><a href="#products">Rangefinders</a>
-          <a href="#products">Rings &amp; Mounts</a><a href="#products">Lasers</a>
+          <a href="#products" onclick="setCat('Optics')">Scopes</a><a href="#products" onclick="setCat('Optics')">Red Dots &amp; Sights</a><a href="#products" onclick="setCat('Optics')">Rangefinders</a>
+          <a href="#products" onclick="setCat('Optics')">Rings &amp; Mounts</a><a href="#products" onclick="setCat('Optics')">Lasers</a>
         </div>
       </div>
       <a href="#products" onclick="setCat('Ammo')">Ammo</a>
@@ -2281,9 +2281,11 @@ function openWishlist() {
    5. STOREFRONT GRID + FILTERS + SORT + QUICK VIEW
    ===================================================================== */
 let currentCat = '';
-function setCat(cat) {                 // called from category tiles / footer links
+function setCat(cat) {                 // called from category tiles / nav / footer links
   const sel = document.getElementById('pCat');
   if (sel) sel.value = cat;
+  const s = document.getElementById('pSearch');
+  if (s) s.value = '';                 // don't let a stale search term hide the category
   applyFilters();
 }
 function focusFilterSearch() {
