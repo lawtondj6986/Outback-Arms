@@ -2055,7 +2055,8 @@ The Outback Arms crew</textarea>
           <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
             <button class="btn btn-primary" id="saveBtn" onclick="saveProduct()">💾 Save Product</button>
             <button class="btn btn-ghost" onclick="resetForm();adminTab('inv')">Cancel</button>
-            <button class="btn btn-ghost" id="seedBtn" onclick="seedInventory(true)" style="margin-left:auto">↻ Reset to demo inventory</button>
+            <button class="btn btn-ghost" id="migrateBtn" onclick="migratePhotosToStorage()" style="margin-left:auto" title="One-time cleanup: move any database-stored photos into the Storage bucket">📦 Move photos to Storage</button>
+            <button class="btn btn-ghost" id="seedBtn" onclick="seedInventory(true)">↻ Reset to demo inventory</button>
           </div>
         </div>
       </div>
@@ -2582,6 +2583,61 @@ async function seedInventory(force) {
     toast('Inventory restored', 'Demo inventory reloaded (8 products).', 'ok');
   }
 }
+
+/* ---------------------------------------------------------------------
+   ONE-TIME CLEANUP: move product photos that were saved as inline base64
+   data-URLs OUT of the database and INTO the 'product-photos' Storage
+   bucket, replacing the heavy blob with a small public URL.
+
+   Why: if the Storage bucket wasn't set up, handlePhotoUpload() fell back
+   to storing the whole image as text on the product row. That bloats the
+   DB, makes `select *` time out, and burns egress on every page view.
+
+   Safe & idempotent: only touches rows whose img starts with "data:",
+   uploads to Storage FIRST, and only rewrites the row after a confirmed
+   public URL. Runs in the signed-in staff session (needs the bucket to
+   exist + staff rights, which product edits already require). Re-runnable.
+   --------------------------------------------------------------------- */
+async function migratePhotosToStorage() {
+  if (!usingSupabase()) { toast('Demo mode', 'Connect Supabase to run the photo migration.', 'warn'); return; }
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { toast('Sign in first', 'Log in as staff, then run the photo cleanup.', 'err'); return; }
+
+  const heavy = INVENTORY.filter(p => typeof p.img === 'string' && p.img.slice(0, 5) === 'data:');
+  if (!heavy.length) { toast('Nothing to move', 'All product photos already use small links — you are all set. ✓', 'ok'); return; }
+  if (!confirm('Move ' + heavy.length + ' product photo(s) from the database into Storage?\n\nThis is safe, keeps your images, and can be re-run.')) return;
+
+  const btn = document.getElementById('migrateBtn');
+  if (btn) { btn.dataset.orig = btn.textContent; btn.disabled = true; }
+
+  let done = 0, failed = 0;
+  for (const p of heavy) {
+    try {
+      const blob = await (await fetch(p.img)).blob();               // data-URL -> Blob
+      const ext  = ((blob.type || '').split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+      const path = 'products/' + p.id + '-' + Date.now().toString(36) + '.' + ext;
+      const up   = await sb.storage.from('product-photos').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: true });
+      if (up.error) throw up.error;
+      const url = sb.storage.from('product-photos').getPublicUrl(path).data.publicUrl;
+      if (!url) throw new Error('No public URL');
+      const upd = await sb.from('products').update({ img: url }).eq('id', p.id);
+      if (upd.error) throw upd.error;
+      p.img = url;                                                   // update local cache
+      done++;
+    } catch (e) {
+      console.warn('[Outback] photo move failed for product', p.id, e);
+      failed++;
+    }
+    if (btn) btn.textContent = 'Moving… ' + (done + failed) + '/' + heavy.length;
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.orig || '📦 Move photos to Storage'; }
+  persistLocal();
+  renderAll();
+  if (failed) toast('Mostly done', done + ' photo(s) moved. ' + failed + ' failed (left in place). If all failed, run the product-photos bucket SQL first, then re-run.', 'warn');
+  else        toast('Photos moved to Storage ✓', done + ' photo(s) relocated. Your database is lean again — no more timeouts.', 'ok');
+}
+
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* Branded placeholder shown when a product photo is missing or fails to load
