@@ -3107,9 +3107,11 @@ function openClass() {
       '<form id="classForm" novalidate>' +
         '<div class="row2"><div class="field"><label for="cName">Name</label><input id="cName" required placeholder="Dan Jameson"/><span class="err-msg">Enter your name.</span></div>' +
         '<div class="field"><label for="cEmail">Email</label><input id="cEmail" type="email" required placeholder="you@email.com"/><span class="err-msg">Enter a valid email.</span></div></div>' +
-        '<div class="field"><label for="cDate">Preferred Saturday</label><input id="cDate" type="date"/></div>' +
+        '<div class="row2"><div class="field"><label for="cPhone">Phone</label><input id="cPhone" type="tel" required placeholder="(508) 555-0149"/><span class="err-msg">Enter a valid phone number.</span></div>' +
+        '<div class="field"><label for="cDate">Preferred Saturday</label><input id="cDate" type="date"/></div></div>' +
         '<label class="chk"><input type="checkbox" required/> <span>I\'m 21+ (or 15+ with guardian consent) and understand the $50 deposit holds my seat.</span></label>' +
         '<button class="btn btn-primary btn-block btn-lg" type="submit">Reserve My Seat →</button>' +
+        '<p style="text-align:center;text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:700;color:var(--accent-2);margin:14px 0 0">$50 DEPOSIT REQUIRED IN PERSON OR BY STORE PHONE VIA CARD</p>' +
       '</form>' +
     '</div>'
   );
@@ -3521,7 +3523,7 @@ function leadContact(p) {
   p = p || {};
   const name = [p.inFirst, p.inLast].filter(Boolean).join(' ') || p.hName || p.cName || p.name || '—';
   const email = p.inEmail || p.cEmail || p.emEmail || p.email || '';
-  const phone = p.inPhone || p.hPhone || p.smsPhone || p.phone || '';
+  const phone = p.inPhone || p.hPhone || p.smsPhone || p.cPhone || p.compPhone || p.yPhone || p.rPhone || p.phone || '';
   return { name, contact: [email, phone].filter(Boolean).join(' · ') || '—' };
 }
 function leadSummary(type, p) {
