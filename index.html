@@ -1841,7 +1841,7 @@ footer li a:hover{color:var(--accent-2)}
           </div>
           <div style="padding:13px 22px;background:rgba(239,108,31,.08);font-size:13px;color:var(--ink-2);display:flex;gap:10px;align-items:flex-start">
             <span style="font-size:16px;line-height:1.3">🔌</span>
-            <span><b style="color:var(--ink)">Email is live; SMS is preview.</b> The <b>Email a campaign</b> box below sends for real through Resend once the <code>send-campaign</code> function is deployed. The SMS composer is still a preview — it needs a Twilio number (A2P registration) before it can send.</span>
+            <span><b style="color:var(--ink)">Email is live; SMS activates once Twilio is connected.</b> The <b>Email a campaign</b> and <b>Send an SMS Alert</b> boxes below send for real once their functions are deployed — <code>send-campaign</code> via Resend, <code>send-sms</code> via Twilio + A2P 10DLC (see <code>deploy/SMS-SETUP.md</code>).</span>
           </div>
         </div>
 
@@ -1917,6 +1917,23 @@ The Outback Arms crew</textarea>
               <button class="btn btn-primary btn-sm" id="btnSendEmail" onclick="sendCampaign(false)">Send to subscribers →</button>
             </div>
             <p class="desc" style="margin-top:10px;font-size:12px">Recipients: everyone who signed up for the newsletter or “Gun of the Week.” Each person gets their own email with an unsubscribe link.</p>
+          </div>
+
+          <!-- Live SMS alert sender — wired to the send-sms Edge Function (activates once Twilio + A2P are set up; see deploy/SMS-SETUP.md) -->
+          <div class="form-card" style="margin-top:4px;border:1px solid var(--accent-2)">
+            <h3 style="margin:0 0 4px">📱 Send an SMS Alert</h3>
+            <p class="desc" style="margin:0 0 12px">Blasts a text to everyone who opted into SMS alerts. Keep it short — one gun, one hook. A “Reply STOP to opt out” footer is added automatically.</p>
+            <div class="field">
+              <label for="smsMsg">Message</label>
+              <textarea id="smsMsg" rows="3" maxlength="320" oninput="var n=this.value.length;document.getElementById('smsCount').textContent=n;document.getElementById('smsSeg').textContent=Math.max(1,Math.ceil(n/160))" placeholder="Just in: Colt Python .357, 1 available — first come, first served. Call 781-585-6615 or swing by.">Just in at Outback Arms: fresh batch of new &amp; used guns + ammo. First come, first served — call 781-585-6615 or stop in.</textarea>
+              <span class="fine" style="color:var(--mute);font-size:12px"><span id="smsCount">0</span>/320 chars · ~<span id="smsSeg">1</span> segment(s)</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input id="smsTestTo" type="tel" placeholder="Your mobile for a test" style="flex:1;min-width:150px;background:#0e0f10;border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--ink);font-size:13px"/>
+              <button class="btn btn-ghost btn-sm" onclick="sendSms(true)">Send test to my phone</button>
+              <button class="btn btn-primary btn-sm" onclick="sendSms(false)">Send to all SMS subscribers →</button>
+            </div>
+            <p class="desc" style="margin-top:10px;font-size:12px">Recipients: everyone who opted into SMS alerts. Needs Twilio + A2P 10DLC registration — setup steps in <code>deploy/SMS-SETUP.md</code>.</p>
           </div>
 
           <div class="preview-email" aria-label="Email preview">
@@ -4247,6 +4264,48 @@ async function sendCampaign(testOnly) {
     }
   } catch (e) {
     toast('Send failed', (e && e.message) || 'Could not reach the send-campaign function.', 'err');
+  } finally {
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+// SMS composer: send an SMS alert for real via the send-sms Edge Function (Twilio).
+// testOnly=true texts the single number typed in the test box; otherwise blasts
+// every opted-in SMS subscriber. A "Reply STOP to opt out" footer is added server-side.
+async function sendSms(testOnly) {
+  const message = (document.getElementById('smsMsg')?.value || '').trim();
+  if (!message) { toast('Write a message', 'Add the text you want to send.', 'err'); return; }
+  if (message.length > 320) { toast('Too long', 'Keep the text under 320 characters.', 'err'); return; }
+  if (!usingSupabase()) { toast('Demo mode', 'Connect Supabase + Twilio to send real texts — nothing was sent.', 'warn'); return; }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { toast('Sign in first', 'Sign in with your staff account to send texts.', 'err'); return; }
+
+  let testPhone = '';
+  if (testOnly) {
+    testPhone = (document.getElementById('smsTestTo')?.value || '').trim();
+    if (!testPhone) { toast('Add a test number', 'Type your mobile number in the test box first.', 'err'); return; }
+    if (!confirm('Send a test text to ' + testPhone + '?')) return;
+  } else {
+    if (!confirm('Text this to ALL opted-in SMS subscribers now? This cannot be undone.')) return;
+  }
+
+  const btns = [...document.querySelectorAll('[onclick^="sendSms"]')];
+  btns.forEach(b => b.disabled = true);
+  toast('Sending…', testOnly ? 'Sending your test text.' : 'Delivering to your SMS list.', 'ok');
+  try {
+    const { data, error } = await sb.functions.invoke('send-sms', { body: { message, testPhone } });
+    if (error) throw error;
+    if (data && data.error) throw new Error(data.error);
+    if (data && data.recipients === 0) { toast('No subscribers yet', 'No SMS opt-ins to text yet — grow the list first.', 'warn'); return; }
+    const n = (data && data.sent) || 0, tot = (data && data.recipients) || 0;
+    if (data && data.errors && data.errors.length) {
+      toast('Partly sent', 'Delivered ' + n + '/' + tot + '. Some failed — check the function logs (Twilio / A2P status).', 'warn');
+    } else {
+      toast(testOnly ? 'Test text sent ✓' : 'SMS blast sent ✓', 'Delivered to ' + n + ' number' + (n === 1 ? '' : 's') + '.', 'ok');
+    }
+  } catch (e) {
+    toast('Send failed', (e && e.message) || 'Could not reach send-sms — deploy it + set the Twilio secrets.', 'err');
   } finally {
     btns.forEach(b => b.disabled = false);
   }
