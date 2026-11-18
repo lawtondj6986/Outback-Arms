@@ -199,11 +199,18 @@ function hubPage(items) {
   return shell(title, desc, `${SITE}/guns`, body, null, PLACEHOLDER);
 }
 
+// Hand-written static landing/guide pages that live outside the product set.
+// Add new guides here so they stay in the sitemap after each regeneration.
+const STATIC_PAGES = [
+  { loc: '/guide/first-firearm-massachusetts', changefreq: 'monthly', priority: '0.8' },
+];
+
 function sitemap(items) {
   const today = new Date().toISOString().slice(0, 10);
   const urls = [
     `<url><loc>${SITE}/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`,
     `<url><loc>${SITE}/guns</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>`,
+    ...STATIC_PAGES.map((s) => `<url><loc>${SITE}${s.loc}</loc><lastmod>${today}</lastmod><changefreq>${s.changefreq}</changefreq><priority>${s.priority}</priority></url>`),
     ...items.map(({ slug }) => `<url><loc>${SITE}/guns/${slug}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  ${urls.join('\n  ')}\n</urlset>\n`;
