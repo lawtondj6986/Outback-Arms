@@ -1,0 +1,44 @@
+name: Generate SEO product pages
+
+# Regenerates the static /guns/<slug> pages + sitemap.xml from live Supabase
+# inventory. Runs daily, on demand, and whenever the generator changes.
+# Uses the public anon key read from index.html — no secrets required.
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '17 8 * * *'   # daily, ~08:17 UTC
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/gen-seo.mjs'
+      - '.github/workflows/generate-seo.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-seo
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Generate product pages + sitemap
+        run: node scripts/gen-seo.mjs
+      - name: Commit if inventory changed
+        run: |
+          git config user.name "Outback Arms Bot"
+          git config user.email "noreply@outbackarms.com"
+          git add guns sitemap.xml
+          if git diff --cached --quiet; then
+            echo "No inventory changes — nothing to commit."
+          else
+            git commit -m "chore: regenerate SEO product pages + sitemap"
+            git push
+          fi
