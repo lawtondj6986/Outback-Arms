@@ -2995,6 +2995,43 @@ function ammoCrossSell(p){
     '<div style="display:grid;gap:8px">' + cards + '</div></div>';
 }
 
+/* --- "You might also like" related products on the quick-view ----------
+   Keeps shoppers browsing: scores other in-stock items by same category,
+   same caliber, and similar price, then shows the top few. */
+function relatedGuns(p){
+  const cal = gunCaliber(p);
+  const price = Number(p.price) || 0;
+  const scored = loadInventory()
+    .filter(function(a){ return a.id !== p.id && a.stock > 0 && a.cat !== 'Ammo'; })
+    .map(function(a){
+      let s = 0;
+      if (a.cat === p.cat) s += 2;
+      if (cal && gunCaliber(a) === cal) s += 3;
+      const ap = Number(a.price) || 0;
+      if (price && ap && Math.abs(ap - price) <= price * 0.4) s += 1;
+      return { a: a, s: s };
+    })
+    .filter(function(x){ return x.s > 0; });
+  scored.sort(function(x, y){ return (y.s - x.s) || (Math.abs((Number(x.a.price)||0) - price) - Math.abs((Number(y.a.price)||0) - price)); });
+  return scored.slice(0, 4).map(function(x){ return x.a; });
+}
+function relatedStrip(p){
+  const rel = relatedGuns(p);
+  if (rel.length < 2) return '';
+  const cards = rel.map(function(a){
+    const nm = ((a.brand && (a.name||'').toLowerCase().indexOf(a.brand.toLowerCase())!==0) ? a.brand + ' ' : '') + (a.name||'');
+    return '<button type="button" onclick="closeModal();openQuickView(' + a.id + ')" style="display:flex;flex-direction:column;text-align:left;background:#0e0f10;border:1px solid var(--line);border-radius:10px;overflow:hidden;color:var(--ink);cursor:pointer;padding:0">' +
+      '<img src="' + (a.img || window.IMG_FALLBACK) + '" alt="" width="220" height="84" style="width:100%;height:84px;object-fit:cover;background:#000" onerror="imgFail(this)"/>' +
+      '<span style="padding:8px 9px;display:flex;flex-direction:column;gap:3px">' +
+        '<span style="font-size:12px;line-height:1.25;max-height:2.5em;overflow:hidden">' + escapeHtml(nm) + '</span>' +
+        '<span style="font-weight:800;color:var(--accent-2);font-size:13px">$' + Number(a.price).toLocaleString() + '</span>' +
+      '</span></button>';
+  }).join('');
+  return '<div style="margin-top:14px">' +
+    '<div style="font-weight:700;font-size:13.5px;margin-bottom:10px">👍 You might also like</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' + cards + '</div></div>';
+}
+
 function openQuickView(id) {
   const p = loadInventory().find(x => x.id === id);
   if (!p) return;
@@ -3022,6 +3059,7 @@ function openQuickView(id) {
         '</div>' +
         '<button class="btn btn-ghost btn-sm btn-block" style="margin-top:10px" onclick="copyProductLink(' + p.id + ')">🔗 Copy link to this product</button>' +
         ammoCrossSell(p) +
+        relatedStrip(p) +
         '<p class="qv-note">Holds are free and last up to 48 hours. Final sale requires a valid MA license and an in-store background check.</p>' +
       '</div>' +
     '</div>'
