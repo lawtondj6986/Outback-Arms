@@ -46,6 +46,16 @@ async function loadProducts() {
 // ---- helpers (slug matches the app's productSlug exactly) ----
 const slugify = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const productSlug = (p) => slugify(`${p.brand}-${p.name}`);
+// Human title that avoids "Beretta Beretta 92FS" when the name already
+// repeats the brand. NOTE: the slug above stays brand+name so the /#slug
+// deep-link into the app keeps working — only the display text changes.
+function displayName(p) {
+  const brand = String(p.brand || '').trim();
+  const name = String(p.name || '').trim();
+  if (!brand) return name;
+  if (!name) return brand;
+  return name.toLowerCase().startsWith(brand.toLowerCase()) ? name : `${brand} ${name}`;
+}
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const money = (n) => '$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const PLACEHOLDER = `${SITE}/og-image.png`;
@@ -74,7 +84,7 @@ function productJsonLd(p, slug) {
   return {
     '@context': 'https://schema.org/',
     '@type': 'Product',
-    name: `${p.brand} ${p.name}`,
+    name: displayName(p),
     image: [p.img || PLACEHOLDER],
     description: descOf(p),
     category: p.cat || 'Firearms',
@@ -97,7 +107,7 @@ function productJsonLd(p, slug) {
 }
 
 function descOf(p) {
-  const bits = [`${p.brand} ${p.name}`, p.cond, money(priceOf(p).now)].filter(Boolean).join(' · ');
+  const bits = [displayName(p), p.cond, money(priceOf(p).now)].filter(Boolean).join(' · ');
   const extra = (p.desc || '').replace(/\s+/g, ' ').trim();
   const tail = 'In stock at Outback Arms, Plympton MA. Hold online, pick up in store. FFL dealer serving the South Shore.';
   return `${bits}. ${extra ? extra + ' ' : ''}${tail}`.slice(0, 300);
@@ -160,10 +170,10 @@ function productPage(p, slug) {
     : '';
   const condCat = [p.cat, p.cond].filter(Boolean).map(esc).join(' · ');
   const body = `<div class="card">
-<img src="${esc(p.img || PLACEHOLDER)}" alt="${esc(p.brand + ' ' + p.name)}" width="800" height="600" loading="eager">
+<img src="${esc(p.img || PLACEHOLDER)}" alt="${esc(displayName(p))}" width="800" height="600" loading="eager">
 <div class="body">
 <p class="cat">${condCat}</p>
-<h1>${esc(p.brand)} ${esc(p.name)}</h1>
+<h1>${esc(displayName(p))}</h1>
 <p class="price">${money(now)}${was ? `<span class="was">${money(was)}</span>` : ''}</p>
 <p class="stock">${esc(stockLine(p))}</p>
 ${p.desc ? `<p class="desc">${esc(p.desc)}</p>` : ''}
@@ -172,13 +182,13 @@ ${specTable}
 <a class="cta2" href="/guns">← Browse all inventory</a>
 <p class="legal">All firearm transfers comply with Massachusetts law and require a valid license (LTC/FID), an FFL transfer, and an in-store background check. Prices subject to change; availability verified in-store. Call 781-585-6615 to confirm.</p>
 </div></div>`;
-  const title = `${p.brand} ${p.name} — ${money(now)} | Outback Arms (Plympton, MA)`;
+  const title = `${displayName(p)} — ${money(now)} | Outback Arms (Plympton, MA)`;
   return shell(title, descOf(p), `${SITE}/guns/${slug}`, body, productJsonLd(p, slug), p.img);
 }
 
 function hubPage(items) {
   const lis = items.map(({ p, slug }) =>
-    `<li><a href="/guns/${slug}"><span>${esc(p.brand)} ${esc(p.name)}</span><span class="p">${money(priceOf(p).now)}</span></a></li>`
+    `<li><a href="/guns/${slug}"><span>${esc(displayName(p))}</span><span class="p">${money(priceOf(p).now)}</span></a></li>`
   ).join('\n');
   const body = `<p class="cat">In-Stock Inventory</p>
 <h1>Firearms, Optics &amp; Ammo — In Stock</h1>
