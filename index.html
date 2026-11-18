@@ -1130,6 +1130,17 @@ footer li a:hover{color:var(--accent-2)}
   </div>
 </section>
 
+<!-- =================== RECENTLY VIEWED =================== -->
+<section class="block" id="recentlyViewed" aria-labelledby="recentTitle" style="display:none">
+  <div class="container">
+    <div class="section-head"><div>
+      <p class="eyebrow">Pick up where you left off</p>
+      <h2 id="recentTitle">Recently viewed</h2>
+    </div></div>
+    <div id="recentRow" style="display:flex;gap:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 2px 14px;scroll-snap-type:x proximity"></div>
+  </div>
+</section>
+
 <!-- =================== PROMOS =================== -->
 <section class="block" id="promos" aria-labelledby="promoTitle">
   <div class="container">
@@ -3062,9 +3073,51 @@ function relatedStrip(p){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' + cards + '</div></div>';
 }
 
+/* --- One-tap social share — turns customers into marketers for a hot gun --- */
+function shareButtons(p){
+  const url = productUrl(p);
+  const title = (p.brand ? p.brand + ' ' : '') + p.name + ' — $' + Number(p.price).toLocaleString() + ' at Outback Arms';
+  const u = encodeURIComponent(url), t = encodeURIComponent(title);
+  const link = function(label, href, method){
+    return '<a href="' + href + '" target="_blank" rel="noopener" onclick="track(\'share\',{method:\'' + method + '\'})" style="flex:1 1 0;min-width:0;text-align:center;background:#0e0f10;border:1px solid var(--line);border-radius:9px;padding:9px 6px;color:var(--ink);text-decoration:none;font-size:12px;font-weight:600">' + label + '</a>';
+  };
+  return '<div style="margin-top:12px">' +
+    '<div style="font-size:12px;color:var(--mute);margin-bottom:7px">Share this gun</div>' +
+    '<div style="display:flex;gap:7px;flex-wrap:wrap">' +
+      link('Facebook', 'https://www.facebook.com/sharer/sharer.php?u=' + u, 'facebook') +
+      link('Text', 'sms:?&body=' + t + '%20' + u, 'sms') +
+      link('Email', 'mailto:?subject=' + t + '&body=' + t + '%20' + u, 'email') +
+      '<button type="button" onclick="copyProductLink(' + p.id + ')" style="flex:1 1 0;min-width:0;background:#0e0f10;border:1px solid var(--line);border-radius:9px;padding:9px 6px;color:var(--ink);cursor:pointer;font-size:12px;font-weight:600">🔗 Copy</button>' +
+    '</div></div>';
+}
+
+/* --- Recently viewed: remember what a shopper looked at, bring them back --- */
+function recordRecent(id){
+  try { let r = JSON.parse(localStorage.getItem('oa_recent') || '[]'); r = [id].concat(r.filter(function(x){ return x !== id; })).slice(0, 12); localStorage.setItem('oa_recent', JSON.stringify(r)); } catch(e){}
+}
+function renderRecentlyViewed(){
+  const sec = document.getElementById('recentlyViewed'), row = document.getElementById('recentRow');
+  if (!sec || !row) return;
+  let ids = []; try { ids = JSON.parse(localStorage.getItem('oa_recent') || '[]'); } catch(e){}
+  const inv = loadInventory();
+  const items = ids.map(function(id){ return inv.find(function(p){ return p.id === id; }); }).filter(Boolean).slice(0, 8);
+  if (items.length < 2) { sec.style.display = 'none'; return; }
+  row.innerHTML = items.map(function(p){
+    return '<button type="button" onclick="openQuickView(' + p.id + ')" style="flex:0 0 180px;scroll-snap-align:start;text-align:left;background:#15171a;border:1px solid var(--line);border-radius:12px;overflow:hidden;color:var(--ink);cursor:pointer;padding:0">' +
+      '<img src="' + (p.img || window.IMG_FALLBACK) + '" alt="' + escapeHtml(p.brand) + ' ' + escapeHtml(p.name) + '" width="180" height="120" loading="lazy" decoding="async" style="width:100%;height:120px;object-fit:cover;background:#000" onerror="imgFail(this)"/>' +
+      '<div style="padding:9px 10px">' +
+        '<div style="font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em">' + escapeHtml(p.brand) + '</div>' +
+        '<div style="font-size:12.5px;line-height:1.25;max-height:2.5em;overflow:hidden;margin:2px 0 5px">' + escapeHtml(p.name) + '</div>' +
+        '<div style="font-weight:800;color:var(--accent-2);font-size:13px">$' + Number(p.price).toLocaleString() + '</div>' +
+      '</div></button>';
+  }).join('');
+  sec.style.display = '';
+}
+
 function openQuickView(id) {
   const p = loadInventory().find(x => x.id === id);
   if (!p) return;
+  recordRecent(id);
   track('view_item', { item_id: p.id, item_name: p.brand + ' ' + p.name, price: p.price, item_category: p.cat });
   const faved = loadWish().includes(p.brand + ' ' + p.name);
   const badgeClass = p.cond.startsWith('Used') ? 'used' : (p.cond === 'Clearance' ? 'deal' : '');
@@ -3087,7 +3140,7 @@ function openQuickView(id) {
           '<button class="btn btn-primary" onclick="closeModal();' + (p.stock === 0 ? 'openRestock' : 'openHold') + '(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\')">' + (p.stock === 0 ? 'Notify Me When Back' : 'Hold This Gun') + '</button>' +
           '<button class="btn btn-ghost" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)">' + (faved ? '♥ Saved' : '♡ Wishlist') + '</button>' +
         '</div>' +
-        '<button class="btn btn-ghost btn-sm btn-block" style="margin-top:10px" onclick="copyProductLink(' + p.id + ')">🔗 Copy link to this product</button>' +
+        shareButtons(p) +
         ammoCrossSell(p) +
         relatedStrip(p) +
         '<p class="qv-note">Holds are free and last up to 48 hours. Final sale requires a valid MA license and an in-store background check.</p>' +
@@ -3096,6 +3149,7 @@ function openQuickView(id) {
   );
   document.getElementById('modalOverlay').setAttribute('aria-labelledby', 'modalTitle');
   if (history.replaceState) { try { history.replaceState(null, '', location.pathname + location.search + '#' + productSlug(p)); } catch (e) {} }
+  renderRecentlyViewed();
 }
 
 /* --- SEO: shareable product deep-links + Product structured data --- */
@@ -4521,6 +4575,7 @@ function updateOpenStatus() {
 function renderAll() {
   renderStorefront();
   renderJustIn();          // "Just In This Week" new-arrivals row
+  renderRecentlyViewed();  // "Recently viewed" row (per-visitor localStorage)
   updateCatCounts();       // real in-stock counts on the category tiles
   populateCaliberFilter(); // precision: refresh caliber dropdown from inventory
   updatePrecisionUI();     // show/hide caliber filter + discipline chips
