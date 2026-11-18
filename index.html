@@ -2907,6 +2907,94 @@ function renderStorefront() {
   }).join('');
 }
 
+/* --- Caliber-match ammo cross-sell -------------------------------------
+   On a gun's quick-view, surface matching in-stock ammo so every gun view
+   can become an ammo sale. Prefers the structured specs.caliber; falls back
+   to parsing the name/description. Exact-caliber match (plus .38 Spl shown
+   for .357 guns, which is safe). Staff still verify correct ammo at sale. */
+const CAL_PATTERNS = [
+  [/\b(12|16|20|28)\s*(?:ga|gauge|gage)\b/, (m)=>m[1]+'ga'],
+  [/\b\.?410\b/, '410'],
+  [/22\s*(?:wmr|mag(?:num)?)/, '22wmr'],
+  [/17\s*hmr/, '17hmr'],
+  [/17\s*hornet/, '17hornet'],
+  [/22\s*hornet/, '22hornet'],
+  [/5\.?56|556\s*nato/, '556'],
+  [/\b\.?223\b/, '223'],
+  [/300\s*(?:blk|blackout|aac)/, '300blk'],
+  [/\b\.?308\b|7\.?62\s*x\s*51/, '308'],
+  [/30\s*-?\s*06/, '3006'],
+  [/30\s*-?\s*30/, '3030'],
+  [/6\.?5\s*creed(?:moor)?/, '65creed'],
+  [/6\.?5\s*prc/, '65prc'],
+  [/6\.?5\s*x\s*55/, '65x55'],
+  [/7\s*mm\s*rem/, '7mmremmag'],
+  [/350\s*legend/, '350legend'],
+  [/45\s*-?\s*70/, '4570'],
+  [/\b\.?243\b/, '243'],
+  [/8\s*mm|8\s*x\s*57|8\s*mauser/, '8mm'],
+  [/303\s*(?:brit|british)?/, '303'],
+  [/9\s*mm|9\s*x\s*19|9\s*luger/, '9mm'],
+  [/\b\.?380\b|9\s*x\s*17|9\s*kurz/, '380'],
+  [/38\s*(?:spl|special|spc)/, '38spl'],
+  [/357\s*sig/, '357sig'],
+  [/357\s*(?:mag(?:num)?)?/, '357'],
+  [/44\s*(?:mag(?:num)?)/, '44mag'],
+  [/44\s*(?:spl|special)/, '44spl'],
+  [/45\s*(?:acp|auto)/, '45acp'],
+  [/45\s*(?:lc|colt)/, '45lc'],
+  [/40\s*(?:s\s*&?\s*w|sw)/, '40sw'],
+  [/10\s*mm/, '10mm'],
+  [/32\s*(?:acp|auto)/, '32acp'],
+  [/32\s*(?:h\s*&?\s*r|hr)/, '32hr'],
+  [/25\s*(?:acp|auto)/, '25acp'],
+  [/5\.?7\s*x?\s*28/, '57x28'],
+  [/\b\.?22\b(?!\s*\d)|22\s*lr|22\s*long\s*rifle|10\s*\/\s*22/, '22lr'],
+];
+function normCaliber(raw){
+  const s = ' ' + String(raw||'').toLowerCase() + ' ';
+  for (let i=0;i<CAL_PATTERNS.length;i++){
+    const m = s.match(CAL_PATTERNS[i][0]);
+    if (m) { const t = CAL_PATTERNS[i][1]; return typeof t==='function'?t(m):t; }
+  }
+  return '';
+}
+function gunCaliber(p){
+  const sc = (p.specs && p.specs.caliber) ? normCaliber(p.specs.caliber) : '';
+  return sc || normCaliber((p.name||'') + ' ' + (p.desc||''));
+}
+function ammoCaliber(a){
+  const sc = (a.specs && a.specs.caliber) ? normCaliber(a.specs.caliber) : '';
+  return sc || normCaliber((a.name||'') + ' ' + (a.desc||''));
+}
+const AMMO_COMPAT = { '357': ['357','38spl'] };  // .38 Special is safe to fire in a .357 gun
+function acceptableAmmoCals(c){ return AMMO_COMPAT[c] || [c]; }
+const CAL_LABEL = {'9mm':'9mm','380':'.380 ACP','38spl':'.38 Special','357':'.357 Magnum','44mag':'.44 Magnum','44spl':'.44 Special','45acp':'.45 ACP','45lc':'.45 Colt','40sw':'.40 S&W','10mm':'10mm','32acp':'.32 ACP','32hr':'.32 H&R','25acp':'.25 ACP','57x28':'5.7x28','22lr':'.22 LR','22wmr':'.22 WMR','22hornet':'.22 Hornet','17hmr':'.17 HMR','17hornet':'.17 Hornet','556':'5.56 NATO','223':'.223 Rem','308':'.308 Win','3006':'.30-06','3030':'.30-30','300blk':'.300 Blackout','65creed':'6.5 Creedmoor','65prc':'6.5 PRC','65x55':'6.5x55','7mmremmag':'7mm Rem Mag','350legend':'.350 Legend','4570':'.45-70','243':'.243 Win','8mm':'8mm Mauser','303':'.303 British','12ga':'12 Gauge','16ga':'16 Gauge','20ga':'20 Gauge','28ga':'28 Gauge','410':'.410 Bore'};
+function calLabel(p, tok){ return (p.specs && p.specs.caliber) ? p.specs.caliber : (CAL_LABEL[tok] || (tok||'').toUpperCase()); }
+function matchingAmmo(p){
+  if (['Handguns','Rifles','Shotguns','Used','Muzzleloaders'].indexOf(p.cat) < 0) return [];
+  const cal = gunCaliber(p);
+  if (!cal) return [];
+  const ok = {}; acceptableAmmoCals(cal).forEach(function(c){ ok[c] = 1; });
+  return loadInventory().filter(function(a){ return a.cat === 'Ammo' && a.stock > 0 && a.id !== p.id && ok[ammoCaliber(a)]; }).slice(0, 4);
+}
+function ammoCrossSell(p){
+  const ammo = matchingAmmo(p);
+  if (!ammo.length) return '';
+  const label = calLabel(p, gunCaliber(p));
+  const cards = ammo.map(function(a){
+    const nm = ((a.brand && (a.name||'').toLowerCase().indexOf(a.brand.toLowerCase())!==0) ? a.brand + ' ' : '') + (a.name||'');
+    return '<button type="button" onclick="closeModal();openQuickView(' + a.id + ')" style="display:flex;align-items:center;gap:10px;text-align:left;width:100%;background:#0e0f10;border:1px solid var(--line);border-radius:10px;padding:8px 10px;color:var(--ink);cursor:pointer">' +
+      '<img src="' + (a.img || window.IMG_FALLBACK) + '" alt="" width="46" height="46" style="border-radius:7px;object-fit:cover;flex:0 0 auto;background:#000" onerror="imgFail(this)"/>' +
+      '<span style="flex:1;min-width:0;font-size:13px;line-height:1.25">' + escapeHtml(nm) + '</span>' +
+      '<span style="font-weight:800;color:var(--accent-2);white-space:nowrap">$' + Number(a.price).toLocaleString() + '</span>' +
+    '</button>';
+  }).join('');
+  return '<div style="margin-top:14px;border:1px solid var(--accent-2);border-radius:12px;padding:12px 14px;background:rgba(239,108,31,.06)">' +
+    '<div style="font-weight:700;font-size:13.5px;margin-bottom:10px">🎯 Shoots <b style="color:var(--accent-2)">' + escapeHtml(label) + '</b> — grab ammo while it\'s in stock</div>' +
+    '<div style="display:grid;gap:8px">' + cards + '</div></div>';
+}
+
 function openQuickView(id) {
   const p = loadInventory().find(x => x.id === id);
   if (!p) return;
@@ -2933,6 +3021,7 @@ function openQuickView(id) {
           '<button class="btn btn-ghost" onclick="quickWish(\'' + (p.brand + ' ' + p.name).replace(/'/g, "\\'") + '\', this)">' + (faved ? '♥ Saved' : '♡ Wishlist') + '</button>' +
         '</div>' +
         '<button class="btn btn-ghost btn-sm btn-block" style="margin-top:10px" onclick="copyProductLink(' + p.id + ')">🔗 Copy link to this product</button>' +
+        ammoCrossSell(p) +
         '<p class="qv-note">Holds are free and last up to 48 hours. Final sale requires a valid MA license and an in-store background check.</p>' +
       '</div>' +
     '</div>'
